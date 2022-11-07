@@ -16,7 +16,7 @@ def export_formated_xml(ET_xml: ET.Element, filename = 'test.xml'):
     tree.write(filename, encoding="utf-8", xml_declaration=True)
 
 def return_string(ET_element: ET.Element, encoding = 'unicode'):
-    ''' Return a string of the     '''
+    ''' Return a string of the ET_element parameter.'''
     # encoding can also be 'utf8'
     ET_string = ET.tostring(ET_element, encoding=encoding , method='xml')
     return ET_string
@@ -240,7 +240,8 @@ class dji_kmz():
                     heightMode: str = 'relativeToStartPoint',
                     templateId: int = 0,
                     globalWaypointTurnMode: str = 'toPointAndPassWithContinuityCurvature',
-                    globalUseStraightLine: int = 1,
+                    globalUseStraightLine: int | None = 1,
+                    waypointTurnDampingDist: float | None = 1,
                     ellipsoidHeight: float = 0,
                     waypointHeadingMode: str = 'followWayline',
                     waypointHeadingAngle: int | None = None,
@@ -313,6 +314,7 @@ class dji_kmz():
         self.waypointHeadingYawPathMode = waypointHeadingYawPathMode
         self.executeHeightMode = executeHeightMode
         self.waylineId = 0
+        self.waypointTurnDampingDist = waypointTurnDampingDist
         self.__check_input_types__()
         self.__check_required_rules__()
 
@@ -355,7 +357,7 @@ class dji_kmz():
         ))
         options.append((
             self.globalTransitionalSpeed,
-            'range',
+            'range_not_equal_to_borders',
             0,
             99999999, # Must be larger than 0
         ))
@@ -377,7 +379,7 @@ class dji_kmz():
         ))
         options.append((
             self.autoFlightSpeed,
-            'range',
+            'range_not_equal_to_borders',
             0,
             50, # max speed of the aircraft can be set higher when required.
         ))
@@ -471,12 +473,13 @@ class dji_kmz():
             'fixed',
             'smoothTransition', # The target yaw angle for a waypoint is given by "wpml:waypointHeadingAngle" and transitions evenly to the target yaw angle of the next waypoint during the flight segment.
         ))
-        options.append(( # this is not set in the documentation. But good to check to be sure.
-            self.waypointHeadingAngle,
-            'range',
-            -180,
-            180,
-        ))
+        if self.waypointHeadingAngle != None:
+            options.append(( # this is not set in the documentation. But good to check to be sure.
+                self.waypointHeadingAngle,
+                'range',
+                -180,
+                180,
+            ))
         options.append((
             self.waypointHeadingYawPathMode,
             'enum'
@@ -516,11 +519,36 @@ class dji_kmz():
                 if options_param[0] not in options_param[2:]:
                     raise ValueError(f'Not a possible value. Parameter was {options_param[0]}, but can only be one of the following arguments: {options_param[2:]}')
             elif options_param[1] == 'range':
+                if not (options_param[0] >= options_param[2]) & (options_param[0] <= options_param[3]): 
+                    raise ValueError(f'Not a possible value. Parameter was {options_param[0]}, but can only be between: {options_param[2:]}')
+            elif options_param[1] == 'range_not_equal_to_borders':
                 if not (options_param[0] > options_param[2]) & (options_param[0] < options_param[3]): 
                     raise ValueError(f'Not a possible value. Parameter was {options_param[0]}, but can only be between: {options_param[2:]}')
 
     def __check_required_rules__(self):
-        pass
+        # globalUseStraightLine
+        if (self.globalWaypointTurnMode == "toPointAndStopWithContinuityCurvature") | (self.globalWaypointTurnMode == "toPointAndPassWithContinuityCurvature"):
+            if (self.globalUseStraightLine != 0) and (self.globalUseStraightLine != 1) :
+                raise ValueError('globalUseStraightLine cannot be None if "wpml:globalWaypointTurnMode" is set to "toPointAndStopWithContinuityCurvature" or "toPointAndPassWithContinuityCurvature".')
+
+        if self.droneEnumValue == 67:
+            if self.droneSubEnumValue == None:
+                raise ValueError('This element is required when droneEnumValue is 67(M30 Series) and connot be None.')
+        
+        if self.waypointHeadingMode == "smoothTransition":
+            if self.waypointHeadingAngle == None:
+                raise ValueError('Required if "wpml:waypointHeadingMode" is "smoothTransition" and cannot be set to None in this case.')
+
+        if self.globalWaypointTurnMode == "coordinateTurn":
+            if self.waypointTurnDampingDist == None:
+                raise ValueError('waypointTurnDampingDist is required when waypointTurnMode" is "coordinateTurn", "wpml:waypointTurnMode" is "toPointAndPassWithContinuityCurvature" and "wpml:useStraightLine" is 1')
+        if self.globalUseStraightLine == 1:
+            if self.waypointTurnDampingDist == None:
+                raise ValueError('waypointTurnDampingDist is required when waypointTurnMode" is "coordinateTurn", "wpml:waypointTurnMode" is "toPointAndPassWithContinuityCurvature" and "wpml:useStraightLine" is 1')
+        if self.globalWaypointTurnMode == "toPointAndPassWithContinuityCurvature":
+            if self.waypointTurnDampingDist == None:
+                raise ValueError('waypointTurnDampingDist is required when waypointTurnMode" is "coordinateTurn", "wpml:waypointTurnMode" is "toPointAndPassWithContinuityCurvature" and "wpml:useStraightLine" is 1')
+        # check if WaypointTurnMode in point 
 
     def build_globalWaypointHeadingParam(self):
         global_waypoint_heading = ET.Element('wpml:globalWaypointHeadingParam')
@@ -536,8 +564,9 @@ class dji_kmz():
     def build_waypoint_template(self):
         global_waypoint_turn_mode = ET.Element('wpml:globalWaypointTurnMode')
         global_waypoint_turn_mode.text = str(self.globalWaypointTurnMode)
-        global_waypoint_straightline = ET.Element('wpml:globalUseStraightLine')
-        global_waypoint_straightline.text = str(self.globalUseStraightLine)
+        if self.globalUseStraightLine != None:
+            global_waypoint_straightline = ET.Element('wpml:globalUseStraightLine')
+            global_waypoint_straightline.text = str(self.globalUseStraightLine)
         ellipsoid_height = ET.Element('wpml:ellipsoidHeight')
         ellipsoid_height.text = str(self.ellipsoidHeight)        
         global_height = ET.Element('wpml:globalHeight')
@@ -720,6 +749,5 @@ if __name__ == '__main__':
     string_xml = return_string(point1_xml)
     print(string_xml)
 
-    # for el in (5):
-    #     print(el)
+
     
