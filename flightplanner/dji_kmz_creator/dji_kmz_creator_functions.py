@@ -32,7 +32,7 @@ class dji_waypoint_mission():
     The build_action_group can be used to return a action group xml element. This requires added 
     actions.
 
-    The build_waypoint_kml can be used to return a waypoint xml element with included action group element
+    The build_waypoint_xml can be used to return a waypoint xml element with included action group element
     '''
     def __init__(self, point_id: int, longitude: float, latitude: float, altitude: None | float = None, 
                 useGlobalHeight: int = 1, useGlobalSpeed: int = 1, waypointSpeed: float = 1, 
@@ -186,7 +186,7 @@ class dji_waypoint_mission():
         return action_group_xml
 
 
-    def build_waypoint_kml(self):
+    def build_waypoint_xml(self):
         
         location = str(self.longitude) + ', ' + str(self.latitude)
 
@@ -242,6 +242,7 @@ class dji_kmz():
                     globalWaypointTurnMode: str = 'toPointAndPassWithContinuityCurvature',
                     globalUseStraightLine: int | None = 1,
                     waypointTurnDampingDist: float | None = 1,
+                    gimbalPitchMode: str = 'usePointSetting',
                     ellipsoidHeight: float = 0,
                     waypointHeadingMode: str = 'followWayline',
                     waypointHeadingAngle: int | None = None,
@@ -315,6 +316,7 @@ class dji_kmz():
         self.executeHeightMode = executeHeightMode
         self.waylineId = 0
         self.waypointTurnDampingDist = waypointTurnDampingDist
+        self.gimbalPitchMode = gimbalPitchMode
         self.__check_input_types__()
         self.__check_required_rules__()
 
@@ -398,12 +400,12 @@ class dji_kmz():
             0,
             1,
         ))
-        # options.append(options_gimbalPitchMode = (
-        #     self.gimbalPitchMode,
-        #     'enum'
-        #     'manual',
-        #     'usePointSetting'
-        # ))
+        options.append(options_gimbalPitchMode = (
+            self.gimbalPitchMode,
+            'enum'
+            'manual',
+            'usePointSetting'
+        ))
 
         ## Options for Waylines.wpml settings
         # Mission Informationalready covered
@@ -567,6 +569,9 @@ class dji_kmz():
         if self.globalUseStraightLine != None:
             global_waypoint_straightline = ET.Element('wpml:globalUseStraightLine')
             global_waypoint_straightline.text = str(self.globalUseStraightLine)
+        # gimbal pitch is only added as it is marked as required.
+        gimbal_pitch_mode = ET.Element('wpml:gimbalPitchMode')
+        gimbal_pitch_mode.text = str(self.gimbalPitchMode)       
         ellipsoid_height = ET.Element('wpml:ellipsoidHeight')
         ellipsoid_height.text = str(self.ellipsoidHeight)        
         global_height = ET.Element('wpml:globalHeight')
@@ -728,11 +733,11 @@ if __name__ == '__main__':
     point1 = dji_waypoint_mission(10, 4.233, 52.00)
     point1.add_hover_action(5)
     point1.add_yaw_action(-20)
-    point1_xml = point1.build_waypoint_kml()
+    point1_xml = point1.build_waypoint_xml()
     point2 = dji_waypoint_mission(10, 4.233, 52.00)
     point2.add_hover_action(22)
     point2.add_yaw_action(-5)
-    point2_xml = point2.build_waypoint_kml()
+    point2_xml = point2.build_waypoint_xml()
 
     test = dji_kmz(
         [point1_xml, point2_xml],
