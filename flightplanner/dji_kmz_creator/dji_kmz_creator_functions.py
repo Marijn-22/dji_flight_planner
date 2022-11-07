@@ -1,19 +1,22 @@
 # The documentation that was used can be found at the following website:
 #  https://developer.dji.com/doc/cloud-api-tutorial/en/specification/dji-wpml/template-kml.html
 
-
+# https://stackoverflow.com/questions/57378372/how-to-input-check-a-class-property
 import time
 import xml.etree.ElementTree as ET
 import shutil
 import os
 import tempfile
 
-def export_formated_xml(ET_kml, filename = 'test.xml'):
-    tree = ET.ElementTree(ET_kml)
+def export_formated_xml(ET_xml: ET.Element, filename = 'test.xml'):
+    ''' Export the input ET_xml parameter to a xml file. The name of the file 
+    is given by the filename.'''
+    tree = ET.ElementTree(ET_xml)
     ET.indent(tree, space="\t", level=0)
     tree.write(filename, encoding="utf-8", xml_declaration=True)
 
-def return_string(ET_element, encoding = 'unicode'):
+def return_string(ET_element: ET.Element, encoding = 'unicode'):
+    ''' Return a string of the     '''
     # encoding can also be 'utf8'
     ET_string = ET.tostring(ET_element, encoding=encoding , method='xml')
     return ET_string
@@ -228,15 +231,13 @@ class dji_kmz():
                     globalTransitionalSpeed: float = 10,
                     flyToWaylineMode: str = 'safely',
                     finishAction: str = 'goHome', 
-                    exitOnRCLost: str = 'excecuteLostAction',
+                    exitOnRCLost: str = 'executeLostAction',
                     executeRCLostAction: str = 'goBack',
                     takeOffRefPoint = None,
-                    payloadInfo: str | None = None,
                     droneEnumValue: int = 60,
                     droneSubEnumValue: int | None = None,
                     coordinateMode: str = 'WGS84',
                     heightMode: str = 'relativeToStartPoint',
-                    templateType: str = 'waypoint',
                     templateId: int = 0,
                     globalWaypointTurnMode: str = 'toPointAndPassWithContinuityCurvature',
                     globalUseStraightLine: int = 1,
@@ -248,7 +249,7 @@ class dji_kmz():
                     nameAutor: str = 'dji_kml_creator', ):
         '''
         Drone payloads are not yet supported. Keyarguments are set for M300RTK.
-        So please double check for M30 Series.
+        So please double check for other drones.
 
         (gimbalPitchMode is not added as gimbals are not yet supported by the code.)
 
@@ -284,13 +285,15 @@ class dji_kmz():
             nameAutor: Name of the Autor in the created KML file.
         
         '''
+        # self.payloadInfo = payloadInfo
+        templateType = 'waypoint'
+
         self.waypoints_elements = waypoints_elements
         self.globalHeight = globalHeight
         self.takeOffSecurityHeight = takeOffSecurityHeight
         self.autoFlightSpeed = autoFlightSpeed
         self.executeRCLostAction = executeRCLostAction
         self.takeOffRefPoint = takeOffRefPoint
-        self.payloadInfo = payloadInfo
         self.nameAutor = nameAutor
         self.finishAction = finishAction
         self.exitOnRCLost = exitOnRCLost
@@ -310,6 +313,185 @@ class dji_kmz():
         self.waypointHeadingYawPathMode = waypointHeadingYawPathMode
         self.executeHeightMode = executeHeightMode
         self.waylineId = 0
+        self.__check_input_types__()
+        self.__check_required_rules__()
+
+    def __check_input_types__(self):
+        options = []
+        ## Options for Template.kml settings
+        # Options missionConfig
+        options.append(
+            (
+            self.flyToWaylineMode,
+            'enum',
+            'safely',
+            'pointToPoint',
+        ))
+        options.append((
+            self.finishAction,
+            'enum',
+            'goHome',
+            'autoLand',
+            'gotoFirstWaypoint',
+        ))
+        options.append((
+            self.exitOnRCLost,
+            'enum',
+            'goContinue',
+            'executeLostAction',
+        ))
+        options.append((
+            self.executeRCLostAction,
+            'enum',
+            'goBack',
+            'landing',
+            'hover',
+        ))
+        options.append((
+            self.takeOffSecurityHeight,
+            'range',
+            1.5,
+            1500,
+        ))
+
+        # Options Template information
+        options.append((
+            self.templateType,
+            'enum',
+            'waypoint',
+            'mapping2d',
+            'mapping3d',
+            'mappingStrip',
+        ))
+
+        # Options Waypoint Template 
+        options.append((
+            self.globalWaypointTurnMode, 
+            'enum',
+            'coordinateTurn',
+            'toPointAndStopWithDiscontinuityCurvature',
+            'toPointAndStopWithContinuityCurvature',
+            'toPointAndPassWithContinuityCurvature',
+        ))
+        options.append((
+            self.globalUseStraightLine,
+            'enum',
+            0,
+            1,
+        ))
+        # options.append(options_gimbalPitchMode = (
+        #     self.gimbalPitchMode,
+        #     'enum'
+        #     'manual',
+        #     'usePointSetting'
+        # ))
+
+        ## Options for Waylines.wpml settings
+        # Mission Informationalready covered
+
+        # Waylines Information
+        options.append((
+            self.executeHeightMode,
+            'enum',
+            'WGS84',
+            'relativeToStartPoint',
+        ))
+
+        ## Options for Common Elements settings
+        # droneInfo
+        options.append((
+            self.droneEnumValue,
+            'enum',
+            60,
+            67,
+            77,
+        ))
+        options.append((
+            self.droneSubEnumValue,
+            'enum',
+            0,
+            1,
+            None,
+        ))
+        # As payload is not supported by the current code, payloadInfo is also not checked
+        #waylineCoordinateSysParam
+        options.append((
+            self.coordinateMode,
+            'enum'
+            'WGS84',
+        ))
+        options.append((
+            self.heightMode,
+            'enum',
+            'EGM96',
+            'relativeToStartPoint',
+            'aboveGroundLevel',
+            'realTimeFollowSurface', # only supported by Mavic 3 Enterprise series.
+        ))
+        # options.append(options_positioningType = ( #Only used to mark the positioningtype. Does not effect route execution.
+        #     self.positioningType,
+        #     'enum',
+        #     'GPS',
+        #     'RTKBaseStation',
+        #     'QianXun',
+        #     'Custom',
+        # ))
+        # globalShootHeight, surfaceFollowModeEnable, surfaceRelativeHeight only available for template types mapping2d, mapping3d, mappingStrip
+        # <wpml:payloadParam> is not supported by this code.
+        # <wpml:overlap> is not yet supported by this code.
+        # <wpml:waypointHeadingParam> & <wpml:globalWaypointHeadingParam>
+        options.append((
+            self.waypointHeadingMode,
+            'enum',
+            'followWayline',
+            'manually',
+            'fixed',
+            'smoothTransition', # The target yaw angle for a waypoint is given by "wpml:waypointHeadingAngle" and transitions evenly to the target yaw angle of the next waypoint during the flight segment.
+        ))
+        options.append((
+            self.waypointHeadingYawPathMode,
+            'enum'
+            'clockwise',
+            'counterClockwise',
+            'followBadArc',
+        ))
+
+        # <wpml:waypointTurnParam> should be given as input if required
+        # options.append(options_waypointTurnMode = (
+        #     self.waypointTurnMode,
+        #     'enum',
+        #     'coordinateTurn',
+        #     'toPointAndStopWithDiscontinuityCurvature',
+        #     'toPointAndStopWithContinuityCurvature',
+        #     'toPointAndPassWithContinuityCurvature',
+        # ))
+        # <wpml:Point> is given as input.
+        # <wpml:actionGroup> is given as input
+        # <wpml:actionTrigger> is given as input
+        # <wpml:action> is given as input
+        # <wpml:actionActuatorFuncParam> is not supported yet
+        # startRecord is not supported yet
+        # stopRecord is not supported yet
+        # focus is not supported yet
+        # zoom is not supported yet
+        # customDirName is not supported yet
+        # gimbalRotate is not supported yet
+        # rotateYaw is given as input
+        # hover is given as input
+
+        # to add globalTransitionalSpeed and globalSpeed larger than 0
+
+        # Test if the correct parameters have been given as input.
+        for options_param in options:
+            if options_param[1] == 'enum':
+                if options_param[0] not in options_param[2:]:
+                    raise ValueError(f'Not a possible value. Parameter was {options_param[0]}, but can only be one of the following arguments: {options_param[2:]}')
+            elif options_param[1] == 'range':
+                if not (options_param[0] > options_param[2]) & (options_param[0] < options_param[3]): 
+                    raise ValueError(f'Not a possible value. Parameter was {options_param[0]}, but can only be between: {options_param[2:]}')
+
+    def __check_required_rules__(self):
+        pass
 
     def build_globalWaypointHeadingParam(self):
         global_waypoint_heading = ET.Element('wpml:globalWaypointHeadingParam')
