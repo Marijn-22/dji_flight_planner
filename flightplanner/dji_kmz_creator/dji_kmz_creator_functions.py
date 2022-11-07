@@ -353,6 +353,12 @@ class dji_kmz():
             1.5,
             1500,
         ))
+        options.append((
+            self.globalTransitionalSpeed,
+            'range',
+            0,
+            99999999, # Must be larger than 0
+        ))
 
         # Options Template information
         options.append((
@@ -363,7 +369,18 @@ class dji_kmz():
             'mapping3d',
             'mappingStrip',
         ))
-
+        options.append((
+            self.templateId,
+            'range',
+            0,
+            65535,
+        ))
+        options.append((
+            self.autoFlightSpeed,
+            'range',
+            0,
+            50, # max speed of the aircraft can be set higher when required.
+        ))
         # Options Waypoint Template 
         options.append((
             self.globalWaypointTurnMode, 
@@ -396,6 +413,12 @@ class dji_kmz():
             'WGS84',
             'relativeToStartPoint',
         ))
+        options.append((
+            self.waylineId,
+            'range',
+            0,
+            65535,
+        ))    
 
         ## Options for Common Elements settings
         # droneInfo
@@ -447,6 +470,12 @@ class dji_kmz():
             'manually',
             'fixed',
             'smoothTransition', # The target yaw angle for a waypoint is given by "wpml:waypointHeadingAngle" and transitions evenly to the target yaw angle of the next waypoint during the flight segment.
+        ))
+        options.append(( # this is not set in the documentation. But good to check to be sure.
+            self.waypointHeadingAngle,
+            'range',
+            -180,
+            180,
         ))
         options.append((
             self.waypointHeadingYawPathMode,
