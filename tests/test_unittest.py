@@ -128,39 +128,40 @@ class TestDjiKmzCreator(unittest.TestCase):
 
     def test_Template_kml_basic_missionConfig(self):
         ''' Test the mission config element from the basic Template kml'''
-        pass
-        # options_flyToWaylineMode = [
-        #     'safely',
-        #     'pointToPoint',
-        # ]
-        # options_finishAction = [
-        #     'goHome',
-        #     'autoLand',
-        #     'gotoFirstWaypoint',
-        # ]
-        # options_exitOnRCLost = [
-        #     'goContinue',
-        #     'executeLostAction',            
-        # ]
+        
+        options_flyToWaylineMode = [
+            'safely',
+            'pointToPoint',
+        ]
+        options_finishAction = [
+            'goHome',
+            'autoLand',
+            'gotoFirstWaypoint',
+        ]
+        options_exitOnRCLost = [
+            'goContinue',
+            'executeLostAction',            
+        ]
 
-        # options_executeRCLostAction = [
-        #     'goBack',
-        #     'landing',
-        #     'hover',
-        # ]
-        # options_takeOffSecurityHeight = [
-        #     1.5,
-        #     1500
-        # ]
-        # # Must be larger than 0
-        # options_globalTransitionalSpeed = [
-        #     0
-        # ]
+        options_executeRCLostAction = [
+            'goBack',
+            'landing',
+            'hover',
+        ]
+        options_takeOffSecurityHeight = [
+            1.5,
+            1500
+        ]
+        # Must be larger than 0
+        options_globalTransitionalSpeed = [
+            0
+        ]
 
-        # mission_config = self.kml_element.find('missionConfig')
 
-        # # Check tag
-        # self.assertEqual(mission_config.tag, 'wpml:missionConfig')
+        ######## ADD globalTransitionalSpeed must be larger than 1
+        mission_config = self.kml_element[0].find('wpml:missionConfig')
+        # Check mission_config tag
+        self.assertEqual(mission_config.tag, 'wpml:missionConfig')
 
         # Check if all required elements are there, the order is correct and not more elements are there. 
         required_mission_config_elements = [
@@ -173,7 +174,13 @@ class TestDjiKmzCreator(unittest.TestCase):
             'wpml:droneInfo',
         ]
 
-        # Check parameters of 
+        for element, required_element in zip(mission_config, required_mission_config_elements):
+            self.assertEqual(element.tag, required_element)
+
+        
+
+        # Check mission config has all required mission elements
+        
 
 
 
@@ -181,27 +188,3 @@ class TestDjiKmzCreator(unittest.TestCase):
 if __name__ == '__main__':
     unittest.main()
 
-
-    # point1 = dji_waypoint_mission(10, 4.233, 52.00)
-    # point1.add_hover_action(5)
-    # point1.add_yaw_action(-20)
-    # point1_xml = point1.build_waypoint_kml()
-    # point2 = dji_waypoint_mission(10, 4.233, 52.00)
-    # point2.add_hover_action(22)
-    # point2.add_yaw_action(-5)
-    # point2_xml = point2.build_waypoint_kml()
-
-    # test = dji_kmz(
-    #     [point1_xml, point2_xml],
-    #     80,
-    #     5,
-    #     80,
-    # )
-
-    # kml_element = test.build_kml()
-    # waylines_wpml_element = test.build_waylines_wpml()
-    # test.build_kmz("yess.kmz")
-    # print('hoi')
-    
-    # string_xml = return_string(point1_xml)
-    # print(string_xml)
