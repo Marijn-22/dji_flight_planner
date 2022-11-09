@@ -598,6 +598,8 @@ class dji_kmz():
         finish_ac.text = str(self.finishAction)
         exit_rc_lost = ET.SubElement(mission_config, 'wpml:exitOnRCLost')
         exit_rc_lost.text = str(self.exitOnRCLost)
+        ex_rc_lost_action = ET.SubElement(mission_config, 'wpml:executeRCLostAction')
+        ex_rc_lost_action.text = str(self.executeRCLostAction)       
         tofs = ET.SubElement(mission_config, 'wpml:takeOffSecurityHeight')
         tofs.text = str(self.takeOffSecurityHeight)
         gts = ET.SubElement(mission_config, 'wpml:globalTransitionalSpeed')

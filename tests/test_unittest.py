@@ -24,6 +24,7 @@ class TestDjiKmzCreator(unittest.TestCase):
             80,
         )
         self.kml_element = self.basic_kmz_creator.build_kml()
+        self.waylines_wpml = self.basic_kmz_creator.build_waylines_wpml()
 
 
         ### Options for waylineCoordinateSysParam ###
@@ -57,7 +58,7 @@ class TestDjiKmzCreator(unittest.TestCase):
 
         # Check if the second element is only "Document"
         document = kml_element[0]
-        self.assertEqual(len(list(kml_element)),1)
+        self.assertEqual(len(list(kml_element)),1) # So 1 child
         self.assertEqual(document.tag,"Document")
 
         # Check if Document contains wpml:author, wpml:createTime, wpml:updateTime,wpml:missionConfig,Folder 
@@ -118,14 +119,6 @@ class TestDjiKmzCreator(unittest.TestCase):
         self.assertIn(option_heightMode, self.options_heightMode)
 
 
-
-
-
-# templatetype = ET.SubElement(folder, 'wpml:templateType')
-# templatetype.text = str(self.templateType)
-# template_id = ET.SubElement(folder, 'wpml:templateId')
-# template_id.text = str(self.templateId)
-
     def test_Template_kml_basic_missionConfig(self):
         ''' Test the mission config element from the basic Template kml'''
         
@@ -148,15 +141,17 @@ class TestDjiKmzCreator(unittest.TestCase):
             'landing',
             'hover',
         ]
-        options_takeOffSecurityHeight = [
-            1.5,
-            1500
-        ]
-        # Must be larger than 0
-        options_globalTransitionalSpeed = [
-            0
+
+        options_droneEnumValue = [
+            60,
+            67,
+            77,
         ]
 
+        options_droneSubEnumValue = [
+            0,
+            1,
+        ]
 
         ######## ADD globalTransitionalSpeed must be larger than 1
         mission_config = self.kml_element[0].find('wpml:missionConfig')
@@ -176,13 +171,62 @@ class TestDjiKmzCreator(unittest.TestCase):
 
         for element, required_element in zip(mission_config, required_mission_config_elements):
             self.assertEqual(element.tag, required_element)
-
         
+        # Check if the parameters of the config_elements are valid
+        option_flyToWaylineMode = mission_config.find('wpml:flyToWaylineMode').text
+        self.assertIn(option_flyToWaylineMode, options_flyToWaylineMode)
+        option_finishAction = mission_config.find('wpml:finishAction').text
+        self.assertIn(option_finishAction, options_finishAction)
+        option_exitOnRCLost = mission_config.find('wpml:exitOnRCLost').text
+        self.assertIn(option_exitOnRCLost, options_exitOnRCLost)
+        option_executeRCLostAction = mission_config.find('wpml:executeRCLostAction').text
+        self.assertIn(option_executeRCLostAction, options_executeRCLostAction)
+        # Must be between [1.5, 1500]
+        option_takeOffSecurityHeight = mission_config.find('wpml:takeOffSecurityHeight').text
+        option_takeOffSecurityHeight = float(option_takeOffSecurityHeight)
+        self.assertTrue((option_takeOffSecurityHeight >= 1.5) and (option_takeOffSecurityHeight <= 1500))
+        # Must be larger than 0
+        option_globalTransitionalSpeed = mission_config.find('wpml:globalTransitionalSpeed').text
+        self.assertTrue(float(option_globalTransitionalSpeed)>0)
 
-        # Check mission config has all required mission elements
+        # Check droneInfo
+        droneEnumValue = mission_config.find('wpml:droneInfo')[0]
+        option_droneEnumValue = int(droneEnumValue.text)
+        if len(list(droneEnumValue)) == 1:
+            # if droneEnumValue is 67 the param droneSubEnumValue is required
+            self.assertFalse(option_droneEnumValue, 67)
+            self.assertIn(option_droneEnumValue, options_droneEnumValue)
+
+        if len(list(droneEnumValue)) == 2:
+            droneSubEnumValue = mission_config.find('wpml:droneInfo')[1]
+            option_droneSubEnumValue = int(droneSubEnumValue)
+            self.assertIn(option_droneEnumValue, options_droneEnumValue)
+            self.assertIn(option_droneSubEnumValue, options_droneSubEnumValue)
+
+    def test_build_waylines_wpml(self):
+        ''' Tests the build_waylines_wpml function'''
+        waylines_wpml = self.waylines_wpml
+        self.assertEqual(waylines_wpml.tag,'kml')
+        # Check waylines_wpml has 1 child
+        self.assertEqual(len(waylines_wpml),1)
         
-
-
+        # Check if correct keys are in the outer xml and order is correct
+        required_kml_keys = ['xmlns', 'xmlns:wpml']
+        required_kml_attribs = [
+            "http://www.opengis.net/kml/2.2",
+            "http://www.dji.com/wpmz/1.0.0",
+        ]
+        kml_keys = waylines_wpml.keys()
+        self.assertEqual(len(kml_keys), 2)
+        for kml_key, required_kml_attrib in zip(kml_keys, required_kml_attribs):
+            self.assertIn(kml_key, required_kml_keys)
+            kml_attrib = waylines_wpml.get(kml_key)
+            self.assertEqual(kml_attrib,required_kml_attrib)
+        
+        # Check document has 1 child and is called Document itself
+        document = waylines_wpml[0]
+        self.assertEqual(len(document),1)
+        self.assertEqual(document.tag,"Document")
 
 
 if __name__ == '__main__':
