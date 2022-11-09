@@ -25,7 +25,7 @@ class TestDjiKmzCreator(unittest.TestCase):
         )
         self.kml_element = self.basic_kmz_creator.build_kml()
         self.waylines_wpml = self.basic_kmz_creator.build_waylines_wpml()
-
+        self.list_of_points = self.basic_kmz_creator.waypoints_elements
 
         ### Options for waylineCoordinateSysParam ###
         self.options_coordinateMode = [
@@ -225,11 +225,23 @@ class TestDjiKmzCreator(unittest.TestCase):
         # Check if wpml:globalUseStraightLine is required and used
         if (waypoint_template_list[0].text != 'toPointAndStopWithContinuityCurvature') or (waypoint_template_list[0].text != 'toPointAndPassWithContinuityCurvature'):
             if waypoint_template_list[1].tag != 'wpml:globalUseStraightLine':
+                # In this line the amount of placemarks is checked
+                self.assertEqual(len(waypoint_template_list), len(self.list_of_points)+6)
+                # In this line the not required and used element is removed from the list
                 required_list_of_elements.pop(1)
+            else:
+                # In this line the amount of placemarks is checked
+                self.assertEqual(len(waypoint_template_list), len(self.list_of_points)+6)
+        else:
+            # In this line the amount of placemarks is checked
+            self.assertEqual(len(waypoint_template_list), len(self.list_of_points)+6)
 
         # Check all required elements in the list.
         for i in range(len(required_list_of_elements)):
             self.assertEqual(waypoint_template_list[i].tag, required_list_of_elements[i])
+
+        # Check if length of the placemarks is correct.
+
 
     def test_build_globalWaypointHeadingParam(self):
         options_waypointHeadingMode = [
@@ -273,10 +285,6 @@ class TestDjiKmzCreator(unittest.TestCase):
             self.assertEqual(type(value), int)
 
 
-
-
-
-
     def test_build_waylines_wpml(self):
         ''' Tests the build_waylines_wpml function'''
         waylines_wpml = self.waylines_wpml
@@ -307,13 +315,69 @@ class TestDjiKmzCreator(unittest.TestCase):
             'wpml:missionConfig',
             'Folder',
         ]
-        # Check if it contains all the required params
+        # Check if it contains all the required tags
         for element, req_element_txt in zip(document, required_elements_in_Document):
-            self.assertEqual(element.text, req_element_txt)
+            self.assertEqual(element.tag, req_element_txt)
 
         # Mission config is added by other function that is already checked. 
 
+        # Check Waylines Information in Folder element
+        required_elements_in_Folder = [
+            'wpml:templateId',
+            'wpml:waylineId',
+            'wpml:autoFlightSpeed',
+            'wpml:executeHeightMode',
+            'Placemark',
+        ]
+
+        # Check if the tags are correct
+        folder = document.find('Folder')
+        for i in range(len(required_elements_in_Folder)):
+            self.assertEqual(folder[i].tag, required_elements_in_Folder[i])
+        # Check if all excess elements are placemarks
+        placemarks_elements = folder[4:]
+        for placemark_element in placemarks_elements:
+            self.assertEqual(placemark_element.tag, 'Placemark')
+
+        # Check length of placemarks is correct
+        self.assertEqual(len(folder[4:]),len(self.list_of_points))
+
+        # Check if the parameters of the tags are correct
+        # Check type and value of templateId
+        templateId_element = folder.find('wpml:templateId')
+        templateId = int(templateId_element.text)
+        self.assertEqual(templateId,self.basic_kmz_creator.templateId)
         
+        waylineId_element = folder.find('wpml:waylineId')
+        waylineId = int(waylineId_element.text)
+        self.assertTrue(waylineId >= 0)
+        self.assertTrue(waylineId <= 65535)
+        self.assertEqual(type(waylineId),int)
+
+        # Is float that must be larger than 0 
+        autoFlightSpeed_element = folder.find('wpml:autoFlightSpeed')
+        autoFlightSpeed = float(autoFlightSpeed_element.text)
+        self.assertTrue(autoFlightSpeed >=0)
+
+        options_executeHeightMode = [
+            'WGS84',
+            'relativeToStartPoint',
+        ]
+        executeHeightMode_element = folder.find('wpml:executeHeightMode')
+        option_executeHeightMode = executeHeightMode_element.text
+        self.assertIn(option_executeHeightMode, options_executeHeightMode)
+
+
+
+
+
+
+        #######possible to check still
+        # - input types
+        # - do keywords work
+        # - check rules when valid function
+        # - integrated test
+        # - check templateId is the same for kml and wpml
 
 if __name__ == '__main__':
     unittest.main()

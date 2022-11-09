@@ -688,7 +688,7 @@ class dji_kmz():
                 folder.append(element)
 
         # wpml:startActionGroup was not added as the documentation was not 
-        # clear about this parameter.
+        # clear about this parameter. And is not usable for the Matrice 300 RTK
 
         return waylines_kml
 
