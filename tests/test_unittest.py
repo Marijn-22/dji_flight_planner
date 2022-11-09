@@ -212,6 +212,7 @@ class TestDjiKmzCreator(unittest.TestCase):
         self.assertEqual(type(waypoint_template_list), list)
 
         # The amount of placemarks depends on the amount of waypoints in the data.
+        # Do not move this parameter to global as values can be removed.
         required_list_of_elements = [
             'wpml:globalWaypointTurnMode',
             'wpml:globalUseStraightLine',
@@ -221,11 +222,55 @@ class TestDjiKmzCreator(unittest.TestCase):
             'wpml:globalWaypointHeadingParam',
             'Placemark',
         ]
+        # Check if wpml:globalUseStraightLine is required and used
+        if (waypoint_template_list[0].text != 'toPointAndStopWithContinuityCurvature') or (waypoint_template_list[0].text != 'toPointAndPassWithContinuityCurvature'):
+            if waypoint_template_list[1].tag != 'wpml:globalUseStraightLine':
+                required_list_of_elements.pop(1)
 
+        # Check all required elements in the list.
         for i in range(len(required_list_of_elements)):
             self.assertEqual(waypoint_template_list[i].tag, required_list_of_elements[i])
 
+    def test_build_globalWaypointHeadingParam(self):
+        options_waypointHeadingMode = [
+            'followWayline',
+            'manually',
+            'fixed',
+            'smoothTransition'
+        ]
+        options_waypointHeadingYawPathMode = [
+            'clockwise',
+            'counterClockwise',
+            'followBadArc',
+        ]
+        # Do not move this parameter to global as values can be removed.
+        required_globalWaypointHeadingParam_elements = [
+            'wpml:waypointHeadingMode',
+            'wpml:waypointHeadingAngle',
+            'wpml:waypointHeadingYawPathMode',
+        ]
 
+
+        globalWaypointHeadingParam = self.basic_kmz_creator.build_globalWaypointHeadingParam()
+
+        # Check if wpml:waypointHeadingAngle is required and used
+        if (globalWaypointHeadingParam[0].text !='smoothTransition'): 
+            if globalWaypointHeadingParam[1].tag != 'wpml:waypointHeadingAngle':
+                required_globalWaypointHeadingParam_elements.pop(1)
+
+        # Check if tags are valid
+        for i in range(len(globalWaypointHeadingParam)):
+            self.assertEqual(globalWaypointHeadingParam[i].tag, required_globalWaypointHeadingParam_elements[i])
+
+        # Check if values are valid
+        option_waypointHeadingMode = globalWaypointHeadingParam.find('wpml:waypointHeadingMode').text
+        self.assertIn(option_waypointHeadingMode, options_waypointHeadingMode)
+        option_waypointHeadingYawPathMode = globalWaypointHeadingParam.find('wpml:waypointHeadingYawPathMode').text
+        self.assertIn(option_waypointHeadingYawPathMode, options_waypointHeadingYawPathMode)
+        # Check if input is integer
+        if globalWaypointHeadingParam[1].tag == 'wpml:waypointHeadingAngle':
+            value = int(globalWaypointHeadingParam[1].text)
+            self.assertEqual(type(value), int)
 
 
 

@@ -564,28 +564,29 @@ class dji_kmz():
         return global_waypoint_heading
 
     def build_waypoint_template(self):
+        ''' This function adds all waypoint elements to 1 list.'''
+        xml_template_list = []
         global_waypoint_turn_mode = ET.Element('wpml:globalWaypointTurnMode')
         global_waypoint_turn_mode.text = str(self.globalWaypointTurnMode)
+        xml_template_list.append(global_waypoint_turn_mode)
+        # global_waypoint_straightline is only added as it is marked as required.
         if self.globalUseStraightLine != None:
             global_waypoint_straightline = ET.Element('wpml:globalUseStraightLine')
             global_waypoint_straightline.text = str(self.globalUseStraightLine)
-        # gimbal pitch is only added as it is marked as required.
+            xml_template_list.append(global_waypoint_straightline)
         gimbal_pitch_mode = ET.Element('wpml:gimbalPitchMode')
-        gimbal_pitch_mode.text = str(self.gimbalPitchMode)       
+        gimbal_pitch_mode.text = str(self.gimbalPitchMode)
+        xml_template_list.append(gimbal_pitch_mode)    
         ellipsoid_height = ET.Element('wpml:ellipsoidHeight')
-        ellipsoid_height.text = str(self.ellipsoidHeight)        
-        global_height = ET.Element('wpml:globalHeight')
+        ellipsoid_height.text = str(self.ellipsoidHeight)
+        xml_template_list.append(ellipsoid_height)         
+        global_height = ET.Element('wpml:height')
         global_height.text = str(self.globalHeight)
+        xml_template_list.append(global_height) 
         global_waypoint_heading_params = self.build_globalWaypointHeadingParam()  
+        xml_template_list.append(global_waypoint_heading_params) 
 
-        xml_template_list = [
-            global_waypoint_turn_mode,
-            global_waypoint_straightline,
-            ellipsoid_height,
-            global_height,
-            global_waypoint_heading_params,
-        ]
-
+        # Add waypoints
         waypoints_xml_template_list = xml_template_list + self.waypoints_elements
 
         return waypoints_xml_template_list 
