@@ -367,17 +367,40 @@ class TestDjiKmzCreator(unittest.TestCase):
         option_executeHeightMode = executeHeightMode_element.text
         self.assertIn(option_executeHeightMode, options_executeHeightMode)
 
-
-
-
-
-
         #######possible to check still
         # - input types
         # - do keywords work
         # - check rules when valid function
         # - integrated test
         # - check templateId is the same for kml and wpml
+
+class TestDjiWaypointMission(unittest.TestCase):
+    def setUp(self):
+        # Set up a DjiWaypointMission
+        basic_point1 = kmz.dji_waypoint_mission(0, 4.233, 52.00)
+        basic_point1_xml = basic_point1.build_waypoint_xml()
+
+
+    def test_add_yaw_action(self):
+        pass
+
+    def test_add_hover_action(self):
+        pass
+
+    def test_yaw_action_kml(self):
+        pass
+
+    def test_hover_action_xml(self):
+        pass
+
+    def test_kml_actions(self):
+        pass
+
+    def test_build_action_group(self):
+        pass
+
+    def test_build_waypoint_xml(self):
+        pass
 
 if __name__ == '__main__':
     unittest.main()

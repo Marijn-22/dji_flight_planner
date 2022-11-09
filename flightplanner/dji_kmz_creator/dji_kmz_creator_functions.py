@@ -106,14 +106,14 @@ class dji_waypoint_mission():
         params = ['hover', currentId, hoverTime]
         self.action_param_list.append(params)
 
-    def yaw_action_kml(self, aircraftHeading: float, aircraftPathMode: str):
+    def yaw_action_xml(self, aircraftHeading: float, aircraftPathMode: str):
         heading = ET.Element('wpml:aircraftHeading')
         heading.text = str(aircraftHeading)
         pathmode = ET.Element('wpml:aircraftPathMode')
         pathmode.text = str(aircraftPathMode)
         return (heading,pathmode)
 
-    def hover_action_kml(self, hoverTime: float):
+    def hover_action_xml(self, hoverTime: float):
         hovertime_xml = ET.Element('wpml:hoverTime')
         hovertime_xml.text = str(hoverTime)
         return hovertime_xml
@@ -135,9 +135,9 @@ class dji_waypoint_mission():
             actionId = params[1]
             actionActuatorFunc = params[0]
             if actionActuatorFunc == 'hover':
-                actionActuatorFuncParam_kml_xml = self.hover_action_kml(params[2])
+                actionActuatorFuncParam_kml_xml = self.hover_action_xml(params[2])
             elif actionActuatorFunc == 'rotateYaw':
-                actionActuatorFuncParam_kml_xml = self.yaw_action_kml(params[2], params[3])
+                actionActuatorFuncParam_kml_xml = self.yaw_action_xml(params[2], params[3])
             else:
                 raise ValueError('The actionActuatorFunc {} was provided but does not exist. Pleas choose from ["hover","rotateYaw"].'.format(actionActuatorFunc))
             
