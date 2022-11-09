@@ -38,7 +38,7 @@ class TestDjiKmzCreator(unittest.TestCase):
         ]
 
 
-    def test_Template_kml_basic_outer(self):
+    def test_build_kml(self):
         ''' Test the outer xml elements of the template kml file, only things that are changed by this function are checked.'''
         kml_element = self.kml_element
         self.assertEqual(kml_element.tag,'kml')
@@ -89,8 +89,9 @@ class TestDjiKmzCreator(unittest.TestCase):
             'wpml:waylineCoordinateSysParam',
         ]
         # Check if it contains all the required params
-        for i, element in enumerate(required_waypoint_template_elements):
-            self.assertEqual(element, required_waypoint_template_elements[i])
+        for i in range(len(required_waypoint_template_elements)):
+            self.assertEqual(folder[i].tag, required_waypoint_template_elements[i])
+
         # Check if the required params are in the correct format
         option_templateType = folder.find('wpml:templateType').text
         self.assertEqual(option_templateType, 'waypoint')
@@ -119,8 +120,9 @@ class TestDjiKmzCreator(unittest.TestCase):
         self.assertIn(option_heightMode, self.options_heightMode)
 
 
-    def test_Template_kml_basic_missionConfig(self):
-        ''' Test the mission config element from the basic Template kml'''
+    def test_build_mission_config(self):
+        ''' Test the build_mission_config function from the dji_kmz class. This
+        function is both used by the build_kml and build_waylines function'''
         
         options_flyToWaylineMode = [
             'safely',
@@ -154,7 +156,7 @@ class TestDjiKmzCreator(unittest.TestCase):
         ]
 
         ######## ADD globalTransitionalSpeed must be larger than 1
-        mission_config = self.kml_element[0].find('wpml:missionConfig')
+        mission_config = self.basic_kmz_creator.build_mission_config()
         # Check mission_config tag
         self.assertEqual(mission_config.tag, 'wpml:missionConfig')
 
@@ -203,6 +205,33 @@ class TestDjiKmzCreator(unittest.TestCase):
             self.assertIn(option_droneEnumValue, options_droneEnumValue)
             self.assertIn(option_droneSubEnumValue, options_droneSubEnumValue)
 
+    def test_build_waypoint_template(self):
+        ''' Tests the function build_waypoint_template'''
+        waypoint_template_list = self.basic_kmz_creator.build_waypoint_template()
+        # Check if output is indeed a list
+        self.assertEqual(type(waypoint_template_list), list)
+
+        # The amount of placemarks depends on the amount of waypoints in the data.
+        required_list_of_elements = [
+            'wpml:globalWaypointTurnMode',
+            'wpml:globalUseStraightLine',
+            'wpml:gimbalPitchMode',
+            'wpml:ellipsoidHeight',
+            'wpml:height',
+            'wpml:globalWaypointHeadingParam',
+            'Placemark',
+        ]
+
+        for i in range(len(required_list_of_elements)):
+            self.assertEqual(waypoint_template_list[i].tag, required_list_of_elements[i])
+
+
+
+
+
+
+
+
     def test_build_waylines_wpml(self):
         ''' Tests the build_waylines_wpml function'''
         waylines_wpml = self.waylines_wpml
@@ -223,11 +252,23 @@ class TestDjiKmzCreator(unittest.TestCase):
             kml_attrib = waylines_wpml.get(kml_key)
             self.assertEqual(kml_attrib,required_kml_attrib)
         
-        # Check document has 1 child and is called Document itself
+        # Check document has 2 childs and is called Document itself
         document = waylines_wpml[0]
-        self.assertEqual(len(document),1)
+        self.assertEqual(len(document),2)
         self.assertEqual(document.tag,"Document")
 
+        # Check if Document has all the required elements in the correct order
+        required_elements_in_Document = [
+            'wpml:missionConfig',
+            'Folder',
+        ]
+        # Check if it contains all the required params
+        for element, req_element_txt in zip(document, required_elements_in_Document):
+            self.assertEqual(element.text, req_element_txt)
+
+        # Mission config is added by other function that is already checked. 
+
+        
 
 if __name__ == '__main__':
     unittest.main()

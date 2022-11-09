@@ -652,7 +652,6 @@ class dji_kmz():
         # surfaceFollowModeEnable, globalShootHeight, surfaceRelativeHeight not 
         # added yet as this cannot be used for waypoint missions.
 
-
         if self.templateType == 'waypoint':
             waypoint_xml_template_list = self.build_waypoint_template()
             for element in waypoint_xml_template_list:
