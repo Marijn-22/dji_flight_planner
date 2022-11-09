@@ -753,8 +753,7 @@ if __name__ == '__main__':
 
     kml_element = test.build_kml()
     waylines_wpml_element = test.build_waylines_wpml()
-    test.build_kmz("yess.kmz")
-    print('hoi')
+    test.build_kmz("data/test_dji_kmz_creator.kmz")
     
     string_xml = return_string(point1_xml)
     print(string_xml)

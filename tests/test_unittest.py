@@ -368,7 +368,7 @@ class TestDjiKmzCreator(unittest.TestCase):
         self.assertIn(option_executeHeightMode, options_executeHeightMode)
 
         #######possible to check still
-        # - input types
+        # - input types  __init__
         # - do keywords work
         # - check rules when valid function
         # - integrated test
