@@ -400,7 +400,7 @@ class dji_kmz():
             0,
             1,
         ))
-        options.append(options_gimbalPitchMode = (
+        options.append((
             self.gimbalPitchMode,
             'enum'
             'manual',
@@ -622,9 +622,9 @@ class dji_kmz():
         # Add file creation information
         author = ET.SubElement(document_xml, 'wpml:author')
         author.text = str(self.nameAutor)
-        createtime = ET.SubElement(document_xml, 'wpml:createtime')
+        createtime = ET.SubElement(document_xml, 'wpml:createTime')
         createtime.text = str(int( time.time_ns() / 1000 ))
-        updatetime = ET.SubElement(document_xml, 'wpml:updatetime')
+        updatetime = ET.SubElement(document_xml, 'wpml:updateTime')
         updatetime.text = str(int( time.time_ns() / 1000 ))
 
         # Setup mission configuration, payload info is not added yet
@@ -637,6 +637,10 @@ class dji_kmz():
         template_id = ET.SubElement(folder, 'wpml:templateId')
         template_id.text = str(self.templateId)
 
+        # Set the autoFlightSpeed
+        global_speed = ET.SubElement(folder, 'wpml:autoFlightSpeed')
+        global_speed.text = str(self.autoFlightSpeed)
+
         # Wayline coordinate system parameters
         coords_sys_params = ET.SubElement(folder, 'wpml:waylineCoordinateSysParam')
         coords_sys = ET.SubElement(coords_sys_params, 'wpml:coordinateMode')
@@ -645,8 +649,7 @@ class dji_kmz():
         height_mode.text = self.heightMode
         # surfaceFollowModeEnable, globalShootHeight, surfaceRelativeHeight not 
         # added yet as this cannot be used for waypoint missions.
-        global_speed = ET.SubElement(folder, 'wpml:autoFlightSpeed')
-        global_speed.text = str(self.autoFlightSpeed)
+
 
         if self.templateType == 'waypoint':
             waypoint_xml_template_list = self.build_waypoint_template()
