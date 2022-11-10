@@ -378,10 +378,11 @@ class TestDjiWaypointMission(unittest.TestCase):
     def setUp(self):
         # Set up a DjiWaypointMission
         basic_point1 = kmz.dji_waypoint_mission(0, 4.233, 52.00)
-        basic_point1_xml = basic_point1.build_waypoint_xml()
+        self.basic_point1_xml_no_action = basic_point1.build_waypoint_xml()
 
 
     def test_add_yaw_action(self):
+
         pass
 
     def test_add_hover_action(self):
@@ -396,11 +397,36 @@ class TestDjiWaypointMission(unittest.TestCase):
     def test_kml_actions(self):
         pass
 
+    def test_build_WaypointHeadingParam(self):
+        pass
+    
     def test_build_action_group(self):
         pass
 
     def test_build_waypoint_xml(self):
-        pass
+        basic_p_no_action = self.basic_point1_xml_no_action
+        # Check tag
+        self.assertEqual(basic_p_no_action.tag,'Placemark')
+
+        # Check point Information in Placemark element
+        required_elements_in_Placemark = [
+            'Point',
+            'wpml:index',
+            'wpml:useGlobalHeight',
+            'wpml:ellipsoidHeight',
+            'wpml:height',
+            'wpml:executeHeight',
+            'wpml:useGlobalSpeed',
+            'wpml:waypointSpeed',
+            'wpml:useGlobalHeadingParam',
+            'wpml:waypointHeadingParam',
+            'wpml:useGlobalTurnParam',
+            'wpml:waypointTurnParam',
+            'wpml:useStraightLine',
+            'wpml:gimbalPitchAngle',
+        ]
+        for i in range(len(required_elements_in_Placemark)):
+            self.assertEqual(basic_p_no_action[i].tag, required_elements_in_Placemark[i])
 
 if __name__ == '__main__':
     unittest.main()

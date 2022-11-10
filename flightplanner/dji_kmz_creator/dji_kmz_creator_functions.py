@@ -15,11 +15,13 @@ def export_formated_xml(ET_xml: ET.Element, filename = 'test.xml'):
     ET.indent(tree, space="\t", level=0)
     tree.write(filename, encoding="utf-8", xml_declaration=True)
 
+
 def return_string(ET_element: ET.Element, encoding = 'unicode'):
     ''' Return a string of the ET_element parameter.'''
     # encoding can also be 'utf8'
     ET_string = ET.tostring(ET_element, encoding=encoding , method='xml')
     return ET_string
+
 
 class dji_waypoint_mission():
     ''' For now only hover and yaw actions are supported.
@@ -34,10 +36,23 @@ class dji_waypoint_mission():
 
     The build_waypoint_xml can be used to return a waypoint xml element with included action group element
     '''
-    def __init__(self, point_id: int, longitude: float, latitude: float, altitude: None | float = None, 
-                useGlobalHeight: int = 1, useGlobalSpeed: int = 1, waypointSpeed: float = 1, 
-                useGlobalHeadingParam: int = 1, useGlobalTurnParam: int = 1, waypointTurnParam = None,
-                useStraightLine: int = 1, gimbalPitchAngle: float = 0):
+    def __init__(
+        self, 
+        point_id: int, 
+        longitude: float, 
+        latitude: float, 
+        height: None | float = None, 
+        executeHeight: float = 100,
+        useGlobalHeight: int = 1,
+        ellipsoidHeight: float = 100,
+        useGlobalSpeed: int = 1, 
+        waypointSpeed: float = 1, 
+        useGlobalHeadingParam: int = 1, 
+        useGlobalTurnParam: int = 1, 
+        waypointTurnParam = None,
+        useStraightLine: int = 1, 
+        gimbalPitchAngle: float = 0,
+        ):
         '''
         Args:
             point_id: Waypoint index, this must be unique for a route. It must be 
@@ -65,7 +80,7 @@ class dji_waypoint_mission():
         self.longitude = longitude
         self.latitude = latitude
         self.point_id = point_id
-        self.altitude = altitude
+        self.height = height
         self.useGlobalHeight = useGlobalHeight
         self.useGlobalSpeed = useGlobalSpeed
         self.waypointSpeed = waypointSpeed
@@ -74,6 +89,8 @@ class dji_waypoint_mission():
         self.waypointTurnParam = waypointTurnParam
         self.useStraightLine = useStraightLine
         self.gimbalPitchAngle = gimbalPitchAngle
+        self.ellipsoidHeight = ellipsoidHeight
+        self.executeHeight = executeHeight
 
         #Inititise parameters
         self.actionId = 0
@@ -157,6 +174,17 @@ class dji_waypoint_mission():
             actions.append(action_xml )
         return actions
 
+    def build_WaypointHeadingParam(self):
+        waypoint_heading_param = ET.Element('wpml:WaypointHeadingParam')
+        mode = ET.SubElement(waypoint_heading_param, 'wpml:waypointHeadingMode')
+        mode.text = str(self.waypointHeadingMode)
+        if self.waypointHeadingAngle != None:
+            angle = ET.SubElement(waypoint_heading_param, 'wpml:waypointHeadingAngle')
+            angle.text = str(self.waypointHeadingAngle)
+        path = ET.SubElement(waypoint_heading_param, 'wpml:waypointHeadingYawPathMode')
+        path.text = str(self.waypointHeadingYawPathMode)
+        return waypoint_heading_param
+
     def build_action_group(self):
         ''' Returns an action group KML.
         '''
@@ -198,20 +226,32 @@ class dji_waypoint_mission():
 
         index_xml = ET.SubElement(waypoint_xml, 'wpml:index')
         index_xml.text = str(self.point_id)
+        use_global_height = ET.SubElement(waypoint_xml, 'wpml:useGlobalHeight')
+        use_global_height.text = str(self.useGlobalHeight)
         ellip_h = ET.SubElement(waypoint_xml, 'wpml:ellipsoidHeight')
-        ellip_h.text = str(90.2)
+        ellip_h.text = str(self.ellipsoidHeight)
         height_xml = ET.SubElement(waypoint_xml, 'wpml:height')
-        height_xml.text = str(100)
-        gl_h_xml = ET.SubElement(waypoint_xml, 'wpml:useGlobalHeight')
-        gl_h_xml.text = str(self.useGlobalHeight)
+        height_xml.text = str(self.height)
+        execute_height = ET.SubElement(waypoint_xml, 'wpml:executeHeight')
+        execute_height.text = str(self.executeHeight)
         gl_sp_xml = ET.SubElement(waypoint_xml, 'wpml:useGlobalSpeed')
-        gl_sp_xml.text = str(1)
+        gl_sp_xml.text = str(self.useGlobalSpeed)
+        waypoint_speed = ET.SubElement(waypoint_xml, 'wpml:waypointSpeed')
+        waypoint_speed.text = str(self.waypointSpeed)        
         gl_hprm_xml = ET.SubElement(waypoint_xml, 'wpml:useGlobalHeadingParam')
-        gl_hprm_xml.text = str(1)
+        gl_hprm_xml.text = str(self.useGlobalHeadingParam)
+        # needs to be created with function.
+        waypoint_heading_param = ET.SubElement(waypoint_xml, 'wpml:waypointHeadingParam')
+        waypoint_heading_param.text = str(self.waypointHeadingParam)
         gl_tprm_xml = ET.SubElement(waypoint_xml, 'wpml:useGlobalTurnParam')
-        gl_tprm_xml.text = str(1)
+        gl_tprm_xml.text = str(self.useGlobalTurnParam)
+        # needs to be created with a function
+        waypoint_turn_param = ET.SubElement(waypoint_xml, 'wpml:waypointTurnParam')
+        waypoint_turn_param.text = str(self.waypointTurnParam)
+        use_straigt_line = ET.SubElement(waypoint_xml, 'wpml:useStraightLine')
+        use_straigt_line.text = str(self.useStraightLine)        
         gpa_xml = ET.SubElement(waypoint_xml, 'wpml:gimbalPitchAngle')
-        gpa_xml.text = str(0)
+        gpa_xml.text = str(self.gimbalPitchAngle)
 
         # Only add actions if there is a filled action list.
         if self.action_param_list != []:
@@ -219,7 +259,6 @@ class dji_waypoint_mission():
             waypoint_xml.append(action_group_element)
 
         return waypoint_xml
-
 
 
 class dji_kmz():
@@ -731,7 +770,6 @@ class dji_kmz():
                 )
 
             shutil.move(path_zip, file)
-
 
 
 if __name__ == '__main__':
