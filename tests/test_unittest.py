@@ -1,11 +1,17 @@
-
+# This file performs unittests for the dji_kmz_creator_functions
 # setting path for flightplanner
 import sys
 sys.path.append('./flightplanner')
 import dji_kmz_creator as kmz
-
 import unittest
 import xml.etree.ElementTree as ET
+
+#######possible to check still
+# - input types  __init__
+# - do keywords work
+# - check rules when valid function
+# - integrated test
+# - check templateId is the same for kml and wpml
 
 class TestDjiKmzCreator(unittest.TestCase):
 
@@ -367,12 +373,6 @@ class TestDjiKmzCreator(unittest.TestCase):
         option_executeHeightMode = executeHeightMode_element.text
         self.assertIn(option_executeHeightMode, options_executeHeightMode)
 
-        #######possible to check still
-        # - input types  __init__
-        # - do keywords work
-        # - check rules when valid function
-        # - integrated test
-        # - check templateId is the same for kml and wpml
 
 class TestDjiWaypointMission(unittest.TestCase):
     def setUp(self):
@@ -392,11 +392,27 @@ class TestDjiWaypointMission(unittest.TestCase):
 
     def test_add_yaw_action(self):
         basic_point = kmz.dji_waypoint_mission(0, 4.233, 52.00)
-        pass
+        basic_point.add_yaw_action(120, aircraftPathMode = 'counterClockwise')
+        output_list = basic_point.action_param_list
+        action1 = output_list[0]
+        self.assertEqual(action1[0], 'rotateYaw')
+        # Check id
+        self.assertEqual(action1[1], 0)
+        # Check aircraftHeading
+        self.assertEqual(action1[2], 120)
+        # Check aircraftPathMode
+        self.assertEqual(action1[3], 'counterClockwise')
 
     def test_add_hover_action(self):
         basic_point = kmz.dji_waypoint_mission(0, 4.233, 52.00)
-        pass
+        basic_point.add_hover_action(7)
+        output_list = basic_point.action_param_list
+        action1 = output_list[0]
+        self.assertEqual(action1[0], 'hover')
+        # Check id
+        self.assertEqual(action1[1], 0)
+        # Check hovertime
+        self.assertEqual(action1[2], 7)
 
     def test_kml_actions(self):
         # Test kml_actions function. It tests the test_yaw_action_kml and hover_action_xml directly as well.
@@ -707,6 +723,7 @@ class TestDjiWaypointMission(unittest.TestCase):
         # Check if all required elements are there
         for i in range(len(required_elements_in_Placemark)):
             self.assertEqual(basic_actions[i].tag, required_elements_in_Placemark[i])
+
 
 if __name__ == '__main__':
     unittest.main()
