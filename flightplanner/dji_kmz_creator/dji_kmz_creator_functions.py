@@ -182,7 +182,7 @@ class dji_waypoint_mission():
                 for element in actionActuatorFuncParam_kml_xml:
                     actionacparam.append(element)
 
-            actions.append(action_xml )
+            actions.append(action_xml)
         return actions
 
     def build_WaypointHeadingParam(self):

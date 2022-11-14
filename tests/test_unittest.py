@@ -391,21 +391,56 @@ class TestDjiWaypointMission(unittest.TestCase):
         self.basic_point3_xml_actions = self.basic_point3.build_waypoint_xml()
 
     def test_add_yaw_action(self):
-        
+        basic_point = kmz.dji_waypoint_mission(0, 4.233, 52.00)
         pass
 
     def test_add_hover_action(self):
-        pass
-
-    def test_yaw_action_kml(self):
-        pass
-
-    def test_hover_action_xml(self):
+        basic_point = kmz.dji_waypoint_mission(0, 4.233, 52.00)
         pass
 
     def test_kml_actions(self):
+        # Test kml_actions function. It tests the test_yaw_action_kml and hover_action_xml directly as well.
+        basic_point = kmz.dji_waypoint_mission(0, 4.233, 52.00)
+        basic_point.action_param_list = [['hover', 0, 5], ['rotateYaw', 1, -180, 'clockwise'], ['rotateYaw', 2, 180, 'clockwise']]
+        test_kml_actions_output = basic_point.kml_actions()
 
-        pass
+        self.assertEqual(len(test_kml_actions_output), len(basic_point.action_param_list))
+
+        options_actionActuatorFunc = [
+            'hover',
+            'rotateYaw',
+        ]
+        options_aircraftPathMode = [
+            'clockwise',
+            'counterClockwise',
+        ]
+
+        for i, action in enumerate(test_kml_actions_output):
+            self.assertEqual(action.tag, 'wpml:action')
+            # Test actionId
+            self.assertEqual(action[0].tag, 'wpml:actionId')
+            actionId = int(action[0].text)
+            self.assertEqual(actionId, i)
+            # Test actionActuatorFunc
+            self.assertEqual(action[1].tag, 'wpml:actionActuatorFunc')
+            self.assertIn(action[1].text, options_actionActuatorFunc)
+            # Test actionActuatorFuncParam
+            self.assertEqual(action[2].tag, 'wpml:actionActuatorFuncParam')
+            params = action[2]
+            if action[1].tag == 'hover':
+                self.assertEqual(len(params), 1)
+                self.assertEqual(params[0].tag, 'wpml:hoverTime')
+                self.assertEqual(type(float(params[0].text)), float)
+            elif action[1].tag == 'rotateYaw':
+                self.assertEqual(len(params), 2)
+                # Check first parameter
+                self.assertEqual(params[0].tag, 'wpml:aircraftHeading')
+                self.assertEqual(type(float(params[0].text)), float)
+                self.assertTrue(float(params[0].text) >= -180)
+                self.assertTrue(float(params[0].text) <= 180)
+                # Check second parameter
+                self.assertEqual(params[1].tag, 'wpml:aircraftPathMode')
+                self.assertIn(params[1].text, options_aircraftPathMode)
 
     def test_build_WaypointHeadingParam(self):
         # Get the output of the function to test.
@@ -534,7 +569,7 @@ class TestDjiWaypointMission(unittest.TestCase):
         test_actionTriggerType = test_actionTrigger.find('wpml:actionTriggerType')
         self.assertIn(test_actionTriggerType.text, options_actionTriggerType)
 
-    def test_build_action_group_with_action(self):
+    def test_build_action_group_with_actions(self):
         # check build_action_group for 3 actions.
         required_elements_action_group = [
             'wpml:actionGroupId',
