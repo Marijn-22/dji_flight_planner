@@ -255,7 +255,7 @@ class TestDjiKmzCreator(unittest.TestCase):
             'counterClockwise',
             'followBadArc',
         ]
-        # Do not move this parameter to global as values can be removed.
+        # Do not move this parameter to global self element in this class as values can be removed.
         required_globalWaypointHeadingParam_elements = [
             'wpml:waypointHeadingMode',
             'wpml:waypointHeadingAngle',
@@ -376,13 +376,22 @@ class TestDjiKmzCreator(unittest.TestCase):
 
 class TestDjiWaypointMission(unittest.TestCase):
     def setUp(self):
-        # Set up a DjiWaypointMission
-        basic_point1 = kmz.dji_waypoint_mission(0, 4.233, 52.00)
-        self.basic_point1_xml_no_action = basic_point1.build_waypoint_xml()
-
+        # Set up a DjiWaypointMission with no actions
+        self.basic_point1 = kmz.dji_waypoint_mission(0, 4.233, 52.00)
+        self.basic_point1_xml_no_action = self.basic_point1.build_waypoint_xml()
+        # Set up a DjiWaypointMission with one action
+        self.basic_point2 = kmz.dji_waypoint_mission(0, 4.233, 52.00)
+        self.basic_point2.add_yaw_action(-20)
+        self.basic_point2_xml_one_action = self.basic_point2.build_waypoint_xml()
+        # Set up a DjiWaypointMission with three actions
+        self.basic_point3 = kmz.dji_waypoint_mission(0, 4.233, 52.00)
+        self.basic_point3.add_hover_action(5)
+        self.basic_point3.add_yaw_action(-180)
+        self.basic_point3.add_yaw_action(180)
+        self.basic_point3_xml_actions = self.basic_point3.build_waypoint_xml()
 
     def test_add_yaw_action(self):
-
+        
         pass
 
     def test_add_hover_action(self):
@@ -398,12 +407,84 @@ class TestDjiWaypointMission(unittest.TestCase):
         pass
 
     def test_build_WaypointHeadingParam(self):
-        pass
-    
+        # Get the output of the function to test.
+        local_WaypointHeadingParam = self.basic_point1.build_WaypointHeadingParam() 
+        
+        required_local_WaypointHeadingParam_elements = [
+            'wpml:waypointHeadingMode',
+            'wpml:waypointHeadingAngle',
+            'wpml:waypointHeadingYawPathMode',
+        ]
+
+        options_waypointHeadingMode = [
+            'followWayline',
+            'manually',
+            'fixed',
+            'smoothTransition'
+        ]
+
+        options_waypointHeadingYawPathMode = [
+            'clockwise',
+            'counterClockwise',
+            'followBadArc',
+        ]
+
+        # Check if wpml:waypointHeadingAngle is required and used
+        if (local_WaypointHeadingParam[0].text !='smoothTransition'): 
+            if local_WaypointHeadingParam[1].tag != 'wpml:waypointHeadingAngle':
+                required_local_WaypointHeadingParam_elements.pop(1)
+
+        # Check if tags are valid
+        for i in range(len(local_WaypointHeadingParam)):
+            self.assertEqual(local_WaypointHeadingParam[i].tag, required_local_WaypointHeadingParam_elements[i])
+
+        # Check if values are valid
+        option_waypointHeadingMode = local_WaypointHeadingParam.find('wpml:waypointHeadingMode').text
+        self.assertIn(option_waypointHeadingMode, options_waypointHeadingMode)
+        option_waypointHeadingYawPathMode = local_WaypointHeadingParam.find('wpml:waypointHeadingYawPathMode').text
+        self.assertIn(option_waypointHeadingYawPathMode, options_waypointHeadingYawPathMode)
+        # Check if input is integer
+        if local_WaypointHeadingParam[1].tag == 'wpml:waypointHeadingAngle':
+            value = int(local_WaypointHeadingParam[1].text)
+            self.assertEqual(type(value), int)
+
+    def test_build_waypointTurnParam(self):
+        # It was chosen to always have a damping distance of a very 
+        # small value of standard 0.1 meter. Therefore it is considered
+        # as always required. When used by the code the distance between 
+        # waypoints should then be larger than 0.1 meters. Check the 
+        # documentation when the parameter is actually used by the drone 
+        # and how it should be used.
+        tags_waypointTurnParam = [
+            'wpml:waypointTurnMode',
+            'wpml:waypointTurnDampingDist',
+        ]
+        # Get the output of the function that is tested.
+        output_waypointTurnParam = self.basic_point1.build_waypointTurnParam()
+        # Check if the elements in the output are as expected
+        for element, req_element in zip(output_waypointTurnParam, tags_waypointTurnParam):
+            self.assertEqual(element.tag, req_element)
+
+        options_waypointTurnMode = [
+            'coordinateTurn',
+            'toPointAndStopWithDiscontinuityCurvature',
+            'toPointAndStopWithContinuityCurvature',
+            'toPointAndPassWithContinuityCurvature',
+        ]
+        # Check if waypointTurnMode is given a valid option
+        turn_mode_txt = output_waypointTurnParam.find('wpml:waypointTurnMode').text
+        self.assertIn(turn_mode_txt, options_waypointTurnMode)
+
+        # Check if wpml:waypointTurnDampingDist is a float
+        waypointTurnDampingDist_float = float(output_waypointTurnParam.find('wpml:waypointTurnDampingDist').text)
+        self.assertEqual(type(waypointTurnDampingDist_float), float)
+
     def test_build_action_group(self):
+        
         pass
 
-    def test_build_waypoint_xml(self):
+    def test_build_waypoint_xml_no_action(self):
+        # Check the build_waypoint_xml function for no actions
         basic_p_no_action = self.basic_point1_xml_no_action
         # Check tag
         self.assertEqual(basic_p_no_action.tag,'Placemark')
@@ -425,8 +506,71 @@ class TestDjiWaypointMission(unittest.TestCase):
             'wpml:useStraightLine',
             'wpml:gimbalPitchAngle',
         ]
+        # Check if the amount of elements is correct
+        self.assertEqual(len(basic_p_no_action),len(required_elements_in_Placemark))
+        # Check if all required elements are there
         for i in range(len(required_elements_in_Placemark)):
             self.assertEqual(basic_p_no_action[i].tag, required_elements_in_Placemark[i])
+
+    def test_build_waypoint_xml_with_action(self):
+        # Check the build_waypoint_xml function for one action
+        basic_one_action = self.basic_point2_xml_one_action
+        # Check tag
+        self.assertEqual(basic_one_action.tag,'Placemark')
+
+        # Check point Information in Placemark element
+        required_elements_in_Placemark = [
+            'Point',
+            'wpml:index',
+            'wpml:useGlobalHeight',
+            'wpml:ellipsoidHeight',
+            'wpml:height',
+            'wpml:executeHeight',
+            'wpml:useGlobalSpeed',
+            'wpml:waypointSpeed',
+            'wpml:useGlobalHeadingParam',
+            'wpml:waypointHeadingParam',
+            'wpml:useGlobalTurnParam',
+            'wpml:waypointTurnParam',
+            'wpml:useStraightLine',
+            'wpml:gimbalPitchAngle',
+            'wpml:actionGroup',
+        ]
+        # Check if the amount of elements is correct
+        self.assertEqual(len(basic_one_action),len(required_elements_in_Placemark))
+        # Check if all required elements are there
+        for i in range(len(required_elements_in_Placemark)):
+            self.assertEqual(basic_one_action[i].tag, required_elements_in_Placemark[i])
+            
+    def test_build_waypoint_xml_with_actiond(self):
+        # Check the build_waypoint_xml function for multiple (3 are tested) actions
+        basic_actions = self.basic_point3_xml_actions
+        # Check tag
+        self.assertEqual(basic_actions.tag,'Placemark')
+
+        # Check point Information in Placemark element
+        required_elements_in_Placemark = [
+            'Point',
+            'wpml:index',
+            'wpml:useGlobalHeight',
+            'wpml:ellipsoidHeight',
+            'wpml:height',
+            'wpml:executeHeight',
+            'wpml:useGlobalSpeed',
+            'wpml:waypointSpeed',
+            'wpml:useGlobalHeadingParam',
+            'wpml:waypointHeadingParam',
+            'wpml:useGlobalTurnParam',
+            'wpml:waypointTurnParam',
+            'wpml:useStraightLine',
+            'wpml:gimbalPitchAngle',
+            'wpml:actionGroup',
+        ]
+        # Check if the amount of elements is correct
+        self.assertEqual(len(basic_actions),len(required_elements_in_Placemark))
+        # Check if all required elements are there
+        for i in range(len(required_elements_in_Placemark)):
+            self.assertEqual(basic_actions[i].tag, required_elements_in_Placemark[i])
 
 if __name__ == '__main__':
     unittest.main()

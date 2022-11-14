@@ -1,7 +1,6 @@
 # The documentation that was used can be found at the following website:
 #  https://developer.dji.com/doc/cloud-api-tutorial/en/specification/dji-wpml/template-kml.html
 
-# https://stackoverflow.com/questions/57378372/how-to-input-check-a-class-property
 import time
 import xml.etree.ElementTree as ET
 import shutil
@@ -49,8 +48,12 @@ class dji_waypoint_mission():
         waypointSpeed: float = 1, 
         useGlobalHeadingParam: int = 1, 
         useGlobalTurnParam: int = 1, 
-        waypointTurnParam = None,
         useStraightLine: int = 1, 
+        waypointHeadingMode: str = 'followWayline',
+        waypointHeadingAngle: int | None = None,
+        waypointHeadingYawPathMode: str = 'followBadArc',
+        waypointTurnMode: str = 'toPointAndPassWithContinuityCurvature',
+        waypointTurnDampingDist: float = 0.1,
         gimbalPitchAngle: float = 0,
         ):
         '''
@@ -74,6 +77,10 @@ class dji_waypoint_mission():
             waypointTurnParam
             useStraightLine
             gimbalPitchAngle
+            waypointTurnDampingDist: WARNING: When this parameter is used by the code it 
+                should be smaller than the wayline length (distance between consecutive
+                waypoints). So if 0.1 m is set the minimum distance between waypoints 
+                should be 0.1 meters. This is only the case.
 
 
         '''
@@ -86,11 +93,15 @@ class dji_waypoint_mission():
         self.waypointSpeed = waypointSpeed
         self.useGlobalHeadingParam = useGlobalHeadingParam
         self.useGlobalTurnParam = useGlobalTurnParam
-        self.waypointTurnParam = waypointTurnParam
         self.useStraightLine = useStraightLine
         self.gimbalPitchAngle = gimbalPitchAngle
         self.ellipsoidHeight = ellipsoidHeight
         self.executeHeight = executeHeight
+        self.waypointHeadingMode = waypointHeadingMode
+        self.waypointHeadingAngle = waypointHeadingAngle
+        self.waypointHeadingYawPathMode = waypointHeadingYawPathMode
+        self.waypointTurnMode = waypointTurnMode
+        self.waypointTurnDampingDist = waypointTurnDampingDist
 
         #Inititise parameters
         self.actionId = 0
@@ -185,6 +196,16 @@ class dji_waypoint_mission():
         path.text = str(self.waypointHeadingYawPathMode)
         return waypoint_heading_param
 
+    def build_waypointTurnParam(self):
+        waypoint_turn_param = ET.Element('wpml:WaypointHeadingParam')
+        turn_mode = ET.SubElement(waypoint_turn_param, 'wpml:waypointTurnMode')
+        turn_mode.text = str(self.waypointTurnMode)
+        # It was chosen to always have a damping distance. It is set as a small value as it must 
+        # be larger than 0 but smaller than the maximum length of wayline segment.
+        waypoint_damping_distance = ET.SubElement(waypoint_turn_param, 'wpml:waypointTurnDampingDist')
+        waypoint_damping_distance.text = str(self.waypointTurnDampingDist)
+        return waypoint_turn_param
+
     def build_action_group(self):
         ''' Returns an action group KML.
         '''
@@ -240,14 +261,16 @@ class dji_waypoint_mission():
         waypoint_speed.text = str(self.waypointSpeed)        
         gl_hprm_xml = ET.SubElement(waypoint_xml, 'wpml:useGlobalHeadingParam')
         gl_hprm_xml.text = str(self.useGlobalHeadingParam)
-        # needs to be created with function.
+        # needs to be created with function build_WaypointHeadingParam.
+        waypointHeadingParam = self.build_WaypointHeadingParam()
         waypoint_heading_param = ET.SubElement(waypoint_xml, 'wpml:waypointHeadingParam')
-        waypoint_heading_param.text = str(self.waypointHeadingParam)
+        waypoint_heading_param.text = str(waypointHeadingParam)
         gl_tprm_xml = ET.SubElement(waypoint_xml, 'wpml:useGlobalTurnParam')
         gl_tprm_xml.text = str(self.useGlobalTurnParam)
         # needs to be created with a function
+        waypointTurnParam = self.build_waypointTurnParam()
         waypoint_turn_param = ET.SubElement(waypoint_xml, 'wpml:waypointTurnParam')
-        waypoint_turn_param.text = str(self.waypointTurnParam)
+        waypoint_turn_param.text = str(waypointTurnParam)
         use_straigt_line = ET.SubElement(waypoint_xml, 'wpml:useStraightLine')
         use_straigt_line.text = str(self.useStraightLine)        
         gpa_xml = ET.SubElement(waypoint_xml, 'wpml:gimbalPitchAngle')
