@@ -1,5 +1,8 @@
+# Code to create a waypoint mission for the DJI Matrice 300 RTK. It can be used to create an
+# KMZ file, which can be loaded into the DJI Pilot 2 application.
+#
 # The documentation that was used can be found at the following website:
-#  https://developer.dji.com/doc/cloud-api-tutorial/en/specification/dji-wpml/template-kml.html
+# https://developer.dji.com/doc/cloud-api-tutorial/en/specification/dji-wpml/template-kml.html
 
 import time
 import xml.etree.ElementTree as ET
@@ -60,7 +63,7 @@ class dji_waypoint_mission():
         Args:
             point_id: Waypoint index, this must be unique for a route. It must be 
                 a sequence number that monotonously and continuously increases 
-                from 0. [0,65535]
+                from 0. Range [0, 65535]
             longitude: Longitude value.
             latitude: Latitude value.
             altitude: Wayline height in EGM96 or relative to take of height.
@@ -112,6 +115,8 @@ class dji_waypoint_mission():
 
     def add_yaw_action(self, aircraftHeading: float, aircraftPathMode: str = 'clockwise'):
         '''
+        This function adds a yaw action to a waypoint.
+
         Args:
             aircraftHeading: heading to north in degrees. [-180,180]
             aircraftPathMode: 'clockwise' or 'counterClockwise'
@@ -124,8 +129,12 @@ class dji_waypoint_mission():
         params = ['rotateYaw', currentId, aircraftHeading, aircraftPathMode]
         self.action_param_list.append(params)
 
-    def add_hover_action(self, hoverTime):
-        ''' Time to hover in seconds.'''
+    def add_hover_action(self, hoverTime: float):
+        ''' 
+        This function adds a hover action to a waypoint
+
+        Args:
+            hoverTime: Time to hover in seconds.'''
 
         #Get correct action id
         currentId = len(self.action_param_list)
@@ -149,12 +158,6 @@ class dji_waypoint_mission():
     def kml_actions(self):
         '''
         actionActuatorFunc can be:
-            takePhoto
-            startRecord
-            focus
-            zoom
-            custumDirName
-            gimbalRotate
             rotateYaw
             hover
         '''
@@ -796,6 +799,7 @@ class dji_kmz():
 
 
 if __name__ == '__main__':
+    # Example code
     point1 = dji_waypoint_mission(10, 4.233, 52.00)
     point1.add_hover_action(5)
     point1.add_yaw_action(-20)

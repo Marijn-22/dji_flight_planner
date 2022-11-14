@@ -1,6 +1,7 @@
 # import dash_html_components as html
 import dash_leaflet as dl
 from dash import Dash, html, dcc, no_update
+import dash
 from dash.dependencies import Output, Input
 from dash.exceptions import PreventUpdate
 from dash_extensions.javascript import assign
@@ -364,4 +365,6 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks):
 # Download polygon
 # Download waypoint kml
 if __name__ == '__main__':
+    print('hoi')
+    print(dash.__version__)
     app.run_server(port=7781, debug=True)
