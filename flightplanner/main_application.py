@@ -343,10 +343,10 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks):
         point = dji_kml.dji_waypoint_mission(i, lon, lat)
         point.add_hover_action(2)
         point.add_yaw_action(-5)
-        test = point.build_waypoint_kml()
+        test = point.build_waypoint_xml()
         points.append(test)
 
-    dji_mission = dji_kml.dji_kml(points, 80, 5, 80)
+    dji_mission = dji_kml.dji_kmz(points, 80, 5, 80)
     dji_mission.build_kmz('test.kmz')
 
     fh = open('test.kmz', 'rb')
