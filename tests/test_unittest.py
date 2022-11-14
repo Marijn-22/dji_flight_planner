@@ -404,11 +404,14 @@ class TestDjiWaypointMission(unittest.TestCase):
         pass
 
     def test_kml_actions(self):
+
         pass
 
     def test_build_WaypointHeadingParam(self):
         # Get the output of the function to test.
         local_WaypointHeadingParam = self.basic_point1.build_WaypointHeadingParam() 
+        # Check if the tag is as expected.
+        self.assertEqual(local_WaypointHeadingParam.tag, 'wpml:WaypointHeadingParam')
         
         required_local_WaypointHeadingParam_elements = [
             'wpml:waypointHeadingMode',
@@ -461,6 +464,10 @@ class TestDjiWaypointMission(unittest.TestCase):
         ]
         # Get the output of the function that is tested.
         output_waypointTurnParam = self.basic_point1.build_waypointTurnParam()
+
+        # Check if the tag of the xml element is as expected
+        self.assertEqual(output_waypointTurnParam.tag, 'wpml:WaypointHeadingParam')
+
         # Check if the elements in the output are as expected
         for element, req_element in zip(output_waypointTurnParam, tags_waypointTurnParam):
             self.assertEqual(element.tag, req_element)
@@ -479,9 +486,103 @@ class TestDjiWaypointMission(unittest.TestCase):
         waypointTurnDampingDist_float = float(output_waypointTurnParam.find('wpml:waypointTurnDampingDist').text)
         self.assertEqual(type(waypointTurnDampingDist_float), float)
 
-    def test_build_action_group(self):
-        
-        pass
+    def test_build_action_group_with_action(self):
+        # check build_action_group for one action.
+        required_elements_action_group = [
+            'wpml:actionGroupId',
+            'wpml:actionGroupStartIndex',
+            'wpml:actionGroupEndIndex',
+            'wpml:actionGroupMode',
+            'wpml:actionTrigger',
+            'wpml:action',
+        ]
+
+        test_one_action_group = self.basic_point2.build_action_group()
+        # Check the tag of the parameter
+        self.assertEqual(test_one_action_group.tag, 'wpml:actionGroup')
+
+        # Test the elements tags in the output of the function
+        for element, req_element in zip(test_one_action_group,required_elements_action_group):
+            self.assertEqual(element.tag, req_element)
+
+        # Test the value types of the first three parameters (should all be of the same type)
+        for i in range(3):
+            value = int(test_one_action_group[i].text)
+            self.assertEqual(type(value), int)
+            self.assertTrue(value >= 0)
+            self.assertTrue(value <+65535)
+
+        # Test actionGroupMode parameter
+        options_actionGroupMode = [
+            'sequence'
+        ]
+        test_actionGroupMode = test_one_action_group.find('wpml:actionGroupMode')
+        self.assertIn(test_actionGroupMode.text, options_actionGroupMode)
+
+        # Test actionTrigger
+        test_actionTrigger = test_one_action_group.find('wpml:actionTrigger') #Tag is checked directly
+        required_elements_action_trigger = [
+            'wpml:actionTriggerType',
+        ]
+        # Check the elements tags in actionTrigger
+        for element, req_element in zip(test_actionTrigger, required_elements_action_trigger):
+            self.assertEqual(element.tag, req_element)
+        # Test actionTriggerType for only option supported by this program yet.
+        options_actionTriggerType = [
+            'reachPoint'
+        ]
+        test_actionTriggerType = test_actionTrigger.find('wpml:actionTriggerType')
+        self.assertIn(test_actionTriggerType.text, options_actionTriggerType)
+
+    def test_build_action_group_with_action(self):
+        # check build_action_group for 3 actions.
+        required_elements_action_group = [
+            'wpml:actionGroupId',
+            'wpml:actionGroupStartIndex',
+            'wpml:actionGroupEndIndex',
+            'wpml:actionGroupMode',
+            'wpml:actionTrigger',
+            'wpml:action',
+            'wpml:action',
+            'wpml:action',
+        ]
+
+        test_actions_group = self.basic_point3.build_action_group()
+        # Check the tag of the parameter
+        self.assertEqual(test_actions_group.tag, 'wpml:actionGroup')
+
+        # Test the elements tags in the output of the function
+        for element, req_element in zip(test_actions_group,required_elements_action_group):
+            self.assertEqual(element.tag, req_element)
+
+        # Test the value types of the first three parameters (should all be of the same type)
+        for i in range(3):
+            value = int(test_actions_group[i].text)
+            self.assertEqual(type(value), int)
+            self.assertTrue(value >= 0)
+            self.assertTrue(value <+65535)
+
+        # Test actionGroupMode parameter
+        options_actionGroupMode = [
+            'sequence'
+        ]
+        test_actionGroupMode = test_actions_group.find('wpml:actionGroupMode')
+        self.assertIn(test_actionGroupMode.text, options_actionGroupMode)
+
+        # Test actionTrigger
+        test_actionTrigger = test_actions_group.find('wpml:actionTrigger') #Tag is checked directly
+        required_elements_action_trigger = [
+            'wpml:actionTriggerType',
+        ]
+        # Check the elements tags in actionTrigger
+        for element, req_element in zip(test_actionTrigger, required_elements_action_trigger):
+            self.assertEqual(element.tag, req_element)
+        # Test actionTriggerType for only option supported by this program yet.
+        options_actionTriggerType = [
+            'reachPoint'
+        ]
+        test_actionTriggerType = test_actionTrigger.find('wpml:actionTriggerType')
+        self.assertIn(test_actionTriggerType.text, options_actionTriggerType)
 
     def test_build_waypoint_xml_no_action(self):
         # Check the build_waypoint_xml function for no actions
@@ -542,7 +643,7 @@ class TestDjiWaypointMission(unittest.TestCase):
         for i in range(len(required_elements_in_Placemark)):
             self.assertEqual(basic_one_action[i].tag, required_elements_in_Placemark[i])
             
-    def test_build_waypoint_xml_with_actiond(self):
+    def test_build_waypoint_xml_with_actions(self):
         # Check the build_waypoint_xml function for multiple (3 are tested) actions
         basic_actions = self.basic_point3_xml_actions
         # Check tag

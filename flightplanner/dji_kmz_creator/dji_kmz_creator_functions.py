@@ -213,7 +213,7 @@ class dji_waypoint_mission():
         actionGroupStartIndex = self.point_id
         actionGroupEndIndex = self.point_id
         actionGroupMode = 'sequence' # only option yet
-        actionTriggerType = 'reachPoint' # other options can be reached in an other way.
+        actionTriggerType = 'reachPoint' # other options not yet supported.
         actions = self.kml_actions()
 
         action_group_xml = ET.Element('wpml:actionGroup')
