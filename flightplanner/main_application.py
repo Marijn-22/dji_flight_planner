@@ -323,20 +323,7 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks):
     y = xy_coords[:,1]
     transformed_lat, transformed_lon = transformer5.transform(x, y)
     
-    # print('lat',transformed_lat ,'lon',transformed_lon )
-
-
-
-    # kml = skml.Kml()
-    # for i in range(len(transformed_lat)):
-    #     pnt = kml.newpoint(name=f"waypoint {i}",
-    #                coords=[(transformed_lon[i],transformed_lat[i],0)])
-    # # lin = kml.newlinestring(name="Pathway", description="A pathway in Kirstenbosch",
-    # #                     coords=[(18.43312,-33.98924), (18.43224,-33.98914),
-    # #                             (18.43144,-33.98911), (18.43095,-33.98904)])
-    # kml_string = kml.kml()
     heights = np.zeros(len(transformed_lon))
-    # kml_string = to_dji_kml(transformed_lat, transformed_lon, heights)
     
     points = []
     for i, (lat, lon, height) in enumerate(zip(transformed_lat, transformed_lon, heights)):
@@ -354,22 +341,6 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks):
     kmz_bytearray = bytes(fh.read())
 
     kmz_dict_download = dcc.send_bytes(kmz_bytearray, 'finaly.kmz')
-    
-
-    # point1 = dji_waypoint_mission(10, 4.233, 52.00)
-
-    # point1 = point1.build_waypoint_kml()
-    # point2 = dji_waypoint_mission(10, 4.233, 52.00)
-    # point2.add_hover_action(22)
-    # point2.add_yaw_action(-5)
-    # point2 = point2.build_waypoint_kml()
-
-    # test = dji_kml(
-    #                     [point1, point2],
-    #                     80,
-    #                     5,
-    #                     80,
-    # )
 
     return kmz_dict_download, str(n_clicks) #dict(content=python_string, filename="flightplan_new_method.kml")
 
