@@ -16,9 +16,13 @@ import shapely as sh
 import time
 from pyproj import Transformer
 import simplekml as skml
-import dji_kmz_creator as dji_kml
 import xml.etree.ElementTree as ET
 import os
+
+# import own functions
+import dji_kmz_creator as dji_kml
+import flight_planning as fp
+
 
 # Set the correct working directory. The dash_extensions.javascript import assign
 # does not work otherwise with the point_to_layer variable.
@@ -84,6 +88,11 @@ body_controls2 = dbc.Card(
         html.Div('Buffer: 0 meter(s)', id = 'buffer_text'),
         html.Div([
             dcc.Slider(id="buffer_slider", min=0, max=20, step=0.1, value=5)
+        ]),
+
+        html.Div('Damping: 0.1 meter(s)', id = 'damping_text'),
+        html.Div([
+            dcc.Slider(id="damping_slider", min=0.1, max=50, step=0.1, value=0.1)
         ]),
         
         html.Div([
@@ -252,12 +261,14 @@ def flightcoordinates(polygon_coords: np.array, angle: float, offset: float, buf
     Output('angle_text','children'),
     Output('offset_text','children'),
     Output('buffer_text','children'),
+    Output('damping_text','children'),
     Input('polygon_update', "data"),
     Input('angle_slider','value'),
     Input('offset_slider','value'),
     Input('buffer_slider','value'),
+    Input('damping_slider','value'),
 )
-def update_flightplan(polygon_coords_json, angle, offset, buffer):
+def update_flightplan(polygon_coords_json, angle, offset, buffer, damping):
     # Make sure this function only executes when there is a polygon_coords_json file.
     if type(polygon_coords_json) == type(None):
         raise PreventUpdate
@@ -289,12 +300,17 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer):
     np_array_points_coords = np.squeeze(points_coords)
     dcc_local_crs_waypoints = json.dumps({"x": np_array_points_coords[:,0].tolist() , "y" : np_array_points_coords[:,1].tolist() , "epsg": epsg_local})
 
+    # Get damping parameters in string format to store in dcc.Store for cross function use
+    np_array_points_coords = np.squeeze(points_coords)
+    dcc_local_crs_waypoints = json.dumps({"x": np_array_points_coords[:,0].tolist() , "y" : np_array_points_coords[:,1].tolist() , "epsg": epsg_local})
+
     # output strings to update settings
     string_offset = f'Offset: {offset}'
     string_angle = f"Angle: {angle} degrees"
     string_buffer = f"Buffer: {buffer} meter(s)"
+    string_damping = f"Damping: {damping} meter(s)"
 
-    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer
+    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer, string_damping
 
 
 @app.callback(
@@ -303,16 +319,21 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer):
     Input("waypoints","data"),
     Input("download_kml_btn", "n_clicks"),
     Input('kml_clicks','data'),
+    Input('damping_slider','value'),
     prevent_initial_call=True,
 )
-def download_kml(waypoints_dict, n_clicks, kml_clicks):
+def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value):
     kml_clicks = int(kml_clicks)
     if n_clicks == kml_clicks:
         raise PreventUpdate
     # Load coordinates in numpy array
     waypoints_dict = json.loads(waypoints_dict)
     xy_coords = np.array([waypoints_dict['x'], waypoints_dict['y']]).T
-    
+    print(xy_coords)
+    # Find max allowed waypointTurnDampingDists for each point
+    checked_waypointTurnDampingDists = fp.find_all_max_waypointTurnDampingDists(xy_coords, max_setting = float(damping_slider_value))
+    print(checked_waypointTurnDampingDists)
+
     # Specify crs
     epsg_local = waypoints_dict['epsg']
     epsg_kml = 4326
@@ -327,14 +348,33 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks):
     heights = np.zeros(len(transformed_lon))
     
     points = []
-    for i, (lat, lon, height) in enumerate(zip(transformed_lat, transformed_lon, heights)):
-        point = dji_kml.dji_waypoint_mission(i, lon, lat)
-        point.add_hover_action(2)
-        point.add_yaw_action(-5)
-        test = point.build_waypoint_xml()
-        points.append(test)
+    for i, (lat, lon, checked_waypointTurnDampingDist) in enumerate(zip(transformed_lat, transformed_lon, checked_waypointTurnDampingDists)):
+        point = dji_kml.dji_waypoint_mission(
+            i, 
+            lon, 
+            lat, 
+            useGlobalHeight = 1,
+            useGlobalSpeed = 1,
+            useGlobalTurnParam = 0,
+            waypointTurnMode = 'toPointAndPassWithContinuityCurvature',
+            useStraightLine = 1,
+            waypointTurnDampingDist = checked_waypointTurnDampingDist,
+            gimbalPitchAngle = 0,
+        )
 
-    dji_mission = dji_kml.dji_kmz(points, 80, 5, 80)
+        point_xml = point.build_waypoint_xml()
+        points.append(point_xml)
+
+    dji_mission = dji_kml.dji_kmz(
+        points,             #point elements
+        80,                 #takeOffSecurityHeight
+        5,                  #autoFlightSpeed
+        80,                 #globalHeight
+        coordinateMode = 'WGS84',
+        heightMode = 'relativeToStartPoint',
+    )
+
+
     dji_mission.build_kmz('test.kmz')
 
     fh = open('test.kmz', 'rb')

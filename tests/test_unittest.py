@@ -458,13 +458,13 @@ class TestDjiWaypointMission(unittest.TestCase):
                 self.assertEqual(params[1].tag, 'wpml:aircraftPathMode')
                 self.assertIn(params[1].text, options_aircraftPathMode)
 
-    def test_build_WaypointHeadingParam(self):
+    def test_build_waypointHeadingParam(self):
         # Get the output of the function to test.
-        local_WaypointHeadingParam = self.basic_point1.build_WaypointHeadingParam() 
+        local_waypointHeadingParam = self.basic_point1.build_waypointHeadingParam() 
         # Check if the tag is as expected.
-        self.assertEqual(local_WaypointHeadingParam.tag, 'wpml:WaypointHeadingParam')
+        self.assertEqual(local_waypointHeadingParam.tag, 'wpml:waypointHeadingParam')
         
-        required_local_WaypointHeadingParam_elements = [
+        required_local_waypointHeadingParam_elements = [
             'wpml:waypointHeadingMode',
             'wpml:waypointHeadingAngle',
             'wpml:waypointHeadingYawPathMode',
@@ -484,22 +484,22 @@ class TestDjiWaypointMission(unittest.TestCase):
         ]
 
         # Check if wpml:waypointHeadingAngle is required and used
-        if (local_WaypointHeadingParam[0].text !='smoothTransition'): 
-            if local_WaypointHeadingParam[1].tag != 'wpml:waypointHeadingAngle':
-                required_local_WaypointHeadingParam_elements.pop(1)
+        if (local_waypointHeadingParam[0].text !='smoothTransition'): 
+            if local_waypointHeadingParam[1].tag != 'wpml:waypointHeadingAngle':
+                required_local_waypointHeadingParam_elements.pop(1)
 
         # Check if tags are valid
-        for i in range(len(local_WaypointHeadingParam)):
-            self.assertEqual(local_WaypointHeadingParam[i].tag, required_local_WaypointHeadingParam_elements[i])
+        for i in range(len(local_waypointHeadingParam)):
+            self.assertEqual(local_waypointHeadingParam[i].tag, required_local_waypointHeadingParam_elements[i])
 
         # Check if values are valid
-        option_waypointHeadingMode = local_WaypointHeadingParam.find('wpml:waypointHeadingMode').text
+        option_waypointHeadingMode = local_waypointHeadingParam.find('wpml:waypointHeadingMode').text
         self.assertIn(option_waypointHeadingMode, options_waypointHeadingMode)
-        option_waypointHeadingYawPathMode = local_WaypointHeadingParam.find('wpml:waypointHeadingYawPathMode').text
+        option_waypointHeadingYawPathMode = local_waypointHeadingParam.find('wpml:waypointHeadingYawPathMode').text
         self.assertIn(option_waypointHeadingYawPathMode, options_waypointHeadingYawPathMode)
         # Check if input is integer
-        if local_WaypointHeadingParam[1].tag == 'wpml:waypointHeadingAngle':
-            value = int(local_WaypointHeadingParam[1].text)
+        if local_waypointHeadingParam[1].tag == 'wpml:waypointHeadingAngle':
+            value = int(local_waypointHeadingParam[1].text)
             self.assertEqual(type(value), int)
 
     def test_build_waypointTurnParam(self):
@@ -517,7 +517,7 @@ class TestDjiWaypointMission(unittest.TestCase):
         output_waypointTurnParam = self.basic_point1.build_waypointTurnParam()
 
         # Check if the tag of the xml element is as expected
-        self.assertEqual(output_waypointTurnParam.tag, 'wpml:WaypointHeadingParam')
+        self.assertEqual(output_waypointTurnParam.tag, 'wpml:waypointTurnParam')
 
         # Check if the elements in the output are as expected
         for element, req_element in zip(output_waypointTurnParam, tags_waypointTurnParam):
@@ -663,6 +663,34 @@ class TestDjiWaypointMission(unittest.TestCase):
         # Check if all required elements are there
         for i in range(len(required_elements_in_Placemark)):
             self.assertEqual(basic_p_no_action[i].tag, required_elements_in_Placemark[i])
+        
+        # Check all values
+        check_point = basic_p_no_action.find('Point')
+        self.assertEqual(type(check_point), ET.Element)
+
+        check_index = basic_p_no_action.find('wpml:index')
+        self.assertEqual(type(int(check_index)), int)
+        self.assertTrue(int(check_index) >= 0)
+
+        check_point = basic_p_no_action.find('Point')
+        self.assertEqual(type(check_point), ET.Element)
+
+        check_point = basic_p_no_action.find('Point')
+        self.assertEqual(type(check_point), ET.Element)
+        
+        check_point = basic_p_no_action.find('Point')
+        self.assertEqual(type(check_point), ET.Element)
+        check_point = basic_p_no_action.find('Point')
+        self.assertEqual(type(check_point), ET.Element)
+        check_point = basic_p_no_action.find('Point')
+        self.assertEqual(type(check_point), ET.Element)
+        check_point = basic_p_no_action.find('Point')
+        self.assertEqual(type(check_point), ET.Element)
+        check_point = basic_p_no_action.find('Point')
+        self.assertEqual(type(check_point), ET.Element)
+        check_point = basic_p_no_action.find('Point')
+        self.assertEqual(type(check_point), ET.Element)
+
 
     def test_build_waypoint_xml_with_action(self):
         # Check the build_waypoint_xml function for one action
