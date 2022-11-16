@@ -642,7 +642,7 @@ class TestDjiWaypointMission(unittest.TestCase):
         self.assertEqual(basic_p_no_action.tag,'Placemark')
 
         # Check point Information in Placemark element
-        required_elements_in_Placemark = [
+        required_elements_in_Placemark = [ 
             'Point',
             'wpml:index',
             'wpml:useGlobalHeight',
@@ -669,8 +669,8 @@ class TestDjiWaypointMission(unittest.TestCase):
         self.assertEqual(type(check_point), ET.Element)
 
         check_index = basic_p_no_action.find('wpml:index')
-        self.assertEqual(type(int(check_index)), int)
-        self.assertTrue(int(check_index) >= 0)
+        self.assertEqual(type(int(check_index.text)), int)
+        self.assertTrue(int(check_index.text) >= 0)
 
         check_point = basic_p_no_action.find('Point')
         self.assertEqual(type(check_point), ET.Element)

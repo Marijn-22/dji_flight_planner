@@ -43,7 +43,7 @@ class dji_waypoint_mission():
         point_id: int, 
         longitude: float, 
         latitude: float, 
-        height: None | float = None, 
+        height: float = 100, 
         executeHeight: float = 100,
         useGlobalHeight: int = 1,
         ellipsoidHeight: float = 100,
@@ -256,9 +256,8 @@ class dji_waypoint_mission():
         use_global_height.text = str(self.useGlobalHeight)
         ellip_h = ET.SubElement(waypoint_xml, 'wpml:ellipsoidHeight')
         ellip_h.text = str(self.ellipsoidHeight)
-        if self.height != None:
-            height_xml = ET.SubElement(waypoint_xml, 'wpml:height')
-            height_xml.text = str(self.height)
+        height_xml = ET.SubElement(waypoint_xml, 'wpml:height')
+        height_xml.text = str(self.height)
         execute_height = ET.SubElement(waypoint_xml, 'wpml:executeHeight')
         execute_height.text = str(self.executeHeight)
         gl_sp_xml = ET.SubElement(waypoint_xml, 'wpml:useGlobalSpeed')
