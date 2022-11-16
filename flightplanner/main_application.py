@@ -283,8 +283,12 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping):
     
     points_coords, sh_overlapping_lines = flightcoordinates(xy_coords , angle, offset, buffer, 40)
 
+    #### Calculate added point coordinates for smooth corners
+    
+
     #### Visualize the flight plan
     sh_linestring_flight_plan = LineString(points_coords)
+
     # Transform the coordinates
     transformer2 = Transformer.from_crs(epsg_local,
                                         epsg_leaflet,
@@ -384,24 +388,20 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value):
 
     return kmz_dict_download, str(n_clicks) #dict(content=python_string, filename="flightplan_new_method.kml")
 
-## Function 1
-# Find leaflet crs polygon coordinates
-# then reproject polygon to utrs or rd and store this. proj
+# Add as variable
+#   flight lines distance
+#
+# function
+#   plots waypoints
+#   plots flightlines
+# 
+# function
+#   add 
+#   
+# 
+# 
+# 
 
-## Function 3
-# Reproject back to leaflet crs.
 
-## Function 2
-# then find the boundingbox in leaflet crs with specified angle
-# Find intersection: lines with angle (param) distance_between_flight_lines (param) and polygon
-# should be possible with shapely
-# Give buffer length (param) to these waypoints.
-# Should be able to update live
-# function 3 to reproject back to leaflet crs
-# plot flightplan
-
-## Function 4
-# Download polygon
-# Download waypoint kml
 if __name__ == '__main__':
     app.run_server(port=7781, debug=True)
