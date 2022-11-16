@@ -329,10 +329,9 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value):
     # Load coordinates in numpy array
     waypoints_dict = json.loads(waypoints_dict)
     xy_coords = np.array([waypoints_dict['x'], waypoints_dict['y']]).T
-    print(xy_coords)
+
     # Find max allowed waypointTurnDampingDists for each point
     checked_waypointTurnDampingDists = fp.find_all_max_waypointTurnDampingDists(xy_coords, max_setting = float(damping_slider_value))
-    print(checked_waypointTurnDampingDists)
 
     # Specify crs
     epsg_local = waypoints_dict['epsg']
@@ -356,7 +355,7 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value):
             useGlobalHeight = 1,
             useGlobalSpeed = 1,
             useGlobalTurnParam = 0,
-            waypointTurnMode = 'toPointAndPassWithContinuityCurvature',
+            waypointTurnMode = 'coordinateTurn',
             useStraightLine = 1,
             waypointTurnDampingDist = checked_waypointTurnDampingDist,
             gimbalPitchAngle = 0,
@@ -405,6 +404,4 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value):
 # Download polygon
 # Download waypoint kml
 if __name__ == '__main__':
-    print('hoi')
-    print(dash.__version__)
     app.run_server(port=7781, debug=True)

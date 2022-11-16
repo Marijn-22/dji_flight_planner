@@ -1,4 +1,5 @@
 import numpy as np
+
 # Functions used for flightplanning for the DJI Matrice 300 RTK
 
 # def find_max_waypointTurnDampingDist(points: list):
@@ -23,7 +24,8 @@ def find_all_max_waypointTurnDampingDists(points: np.array, max_setting: float |
     '''
     Function finds max allowed waypointTurnDampingDist. First checks length of wayline
     of previous and next point in the flightplan. So the distance
-    between the point of interest and the previous and next coordinate.
+    between the point of interest and the previous and next coordinate. The waypointTurnDampingDist
+    is not allowed to be larger than half of the wayline distance of contiguous points.
 
     Args:
         points: Numpy array containing all points in the flightplan, it calculates the max
@@ -35,11 +37,15 @@ def find_all_max_waypointTurnDampingDists(points: np.array, max_setting: float |
         (float): Max damping distance allowed for these points in meters
     '''
     diff_xy = np.diff(points, axis = 0)
-    lengths = np.sum(diff_xy**2, axis = 1)
+    lengths = np.sqrt(np.sum(diff_xy**2, axis = 1))
     lengths_before = lengths[:-1]
     lengths_after = lengths[1:]
     max_allowed_lengths = np.zeros(len(points))
-    max_allowed_lengths[1:-1] = np.minimum(lengths_before,lengths_after)
+    minimum_wayline_lengths = np.minimum(lengths_before,lengths_after)
+    # Minimum length of the drone on the wayline is set to 1 meter (0.5 on both sides)
+    # With larger values this results in error in the DJI Pilot 2 app. 
+    maximum_allowed_lengths_by_DJI_pilot2 = ((minimum_wayline_lengths)-0.5)/2 
+    max_allowed_lengths[1:-1] = maximum_allowed_lengths_by_DJI_pilot2
 
     if max_setting != None:
         if max_setting >= 0.2:
