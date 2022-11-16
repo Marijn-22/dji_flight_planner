@@ -666,31 +666,68 @@ class TestDjiWaypointMission(unittest.TestCase):
         
         # Check all values
         check_point = basic_p_no_action.find('Point')
-        self.assertEqual(type(check_point), ET.Element)
+        option_coordinates = check_point[0]
+        self.assertEqual(option_coordinates.tag, 'coordinates')
+        option_long, option_lat = option_coordinates.text.split(',')
+        self.assertEqual(type(float(option_long)), float)
+        self.assertEqual(type(float(option_lat)), float)
 
         check_index = basic_p_no_action.find('wpml:index')
         self.assertEqual(type(int(check_index.text)), int)
         self.assertTrue(int(check_index.text) >= 0)
 
-        check_point = basic_p_no_action.find('Point')
-        self.assertEqual(type(check_point), ET.Element)
+        options_useGlobalHeight = [
+            0,
+            1,
+        ]
+        option_useGlobalHeight = basic_p_no_action.find('wpml:useGlobalHeight')
+        self.assertIn(int(option_useGlobalHeight.text), options_useGlobalHeight)
 
-        check_point = basic_p_no_action.find('Point')
-        self.assertEqual(type(check_point), ET.Element)
+        option_ellipsoidHeight = basic_p_no_action.find('wpml:ellipsoidHeight')
+        self.assertEqual(type(float(option_ellipsoidHeight.text)), float)
         
-        check_point = basic_p_no_action.find('Point')
-        self.assertEqual(type(check_point), ET.Element)
-        check_point = basic_p_no_action.find('Point')
-        self.assertEqual(type(check_point), ET.Element)
-        check_point = basic_p_no_action.find('Point')
-        self.assertEqual(type(check_point), ET.Element)
-        check_point = basic_p_no_action.find('Point')
-        self.assertEqual(type(check_point), ET.Element)
-        check_point = basic_p_no_action.find('Point')
-        self.assertEqual(type(check_point), ET.Element)
-        check_point = basic_p_no_action.find('Point')
-        self.assertEqual(type(check_point), ET.Element)
+        option_height = basic_p_no_action.find('wpml:height')
+        self.assertEqual(type(float(option_height.text)), float)
 
+        options_useGlobalSpeed = [
+            0,
+            1,
+        ]
+        option_useGlobalSpeed = basic_p_no_action.find('wpml:useGlobalSpeed')
+        self.assertIn(int(option_useGlobalSpeed.text), options_useGlobalSpeed)
+
+        option_waypointSpeed = basic_p_no_action.find('wpml:waypointSpeed')
+        self.assertEqual(type(float(option_waypointSpeed.text)), float)
+
+        options_useGlobalHeadingParam = [
+            0,
+            1,
+        ]
+        option_useGlobalHeadingParam = basic_p_no_action.find('wpml:useGlobalHeadingParam')
+        self.assertIn(int(option_useGlobalHeadingParam.text), options_useGlobalHeadingParam)
+
+        option_waypointHeadingParam = basic_p_no_action.find('wpml:waypointHeadingParam')
+        self.assertEqual(type(option_waypointHeadingParam[0]), ET.Element)
+
+        options_useGlobalTurnParam = [
+            0,
+            1,
+        ]
+        option_GlobalTurnParam = basic_p_no_action.find('wpml:useGlobalTurnParam')
+        self.assertIn(int(option_GlobalTurnParam.text), options_useGlobalTurnParam)
+
+        option_waypointTurnParam = basic_p_no_action.find('wpml:waypointTurnParam')
+        self.assertEqual(type(option_waypointTurnParam[0]), ET.Element)
+
+        options_useStraightLine = [
+            0,
+            1,
+        ]
+        option_useStraightLine = basic_p_no_action.find('wpml:useStraightLine')
+        self.assertIn(int(option_useStraightLine.text), options_useStraightLine)
+
+        option_gimbalPitchAngle = basic_p_no_action.find('wpml:gimbalPitchAngle')
+        self.assertEqual(type(float(option_gimbalPitchAngle.text)), float)
 
     def test_build_waypoint_xml_with_action(self):
         # Check the build_waypoint_xml function for one action
@@ -721,6 +758,71 @@ class TestDjiWaypointMission(unittest.TestCase):
         # Check if all required elements are there
         for i in range(len(required_elements_in_Placemark)):
             self.assertEqual(basic_one_action[i].tag, required_elements_in_Placemark[i])
+
+        # Check all values
+        check_point = basic_one_action.find('Point')
+        option_coordinates = check_point[0]
+        self.assertEqual(option_coordinates.tag, 'coordinates')
+        option_long, option_lat = option_coordinates.text.split(',')
+        self.assertEqual(type(float(option_long)), float)
+        self.assertEqual(type(float(option_lat)), float)
+
+        check_index = basic_one_action.find('wpml:index')
+        self.assertEqual(type(int(check_index.text)), int)
+        self.assertTrue(int(check_index.text) >= 0)
+
+        options_useGlobalHeight = [
+            0,
+            1,
+        ]
+        option_useGlobalHeight = basic_one_action.find('wpml:useGlobalHeight')
+        self.assertIn(int(option_useGlobalHeight.text), options_useGlobalHeight)
+
+        option_ellipsoidHeight = basic_one_action.find('wpml:ellipsoidHeight')
+        self.assertEqual(type(float(option_ellipsoidHeight.text)), float)
+        
+        option_height = basic_one_action.find('wpml:height')
+        self.assertEqual(type(float(option_height.text)), float)
+
+        options_useGlobalSpeed = [
+            0,
+            1,
+        ]
+        option_useGlobalSpeed = basic_one_action.find('wpml:useGlobalSpeed')
+        self.assertIn(int(option_useGlobalSpeed.text), options_useGlobalSpeed)
+
+        option_waypointSpeed = basic_one_action.find('wpml:waypointSpeed')
+        self.assertEqual(type(float(option_waypointSpeed.text)), float)
+
+        options_useGlobalHeadingParam = [
+            0,
+            1,
+        ]
+        option_useGlobalHeadingParam = basic_one_action.find('wpml:useGlobalHeadingParam')
+        self.assertIn(int(option_useGlobalHeadingParam.text), options_useGlobalHeadingParam)
+
+        option_waypointHeadingParam = basic_one_action.find('wpml:waypointHeadingParam')
+        self.assertEqual(type(option_waypointHeadingParam[0]), ET.Element)
+
+        options_useGlobalTurnParam = [
+            0,
+            1,
+        ]
+        option_GlobalTurnParam = basic_one_action.find('wpml:useGlobalTurnParam')
+        self.assertIn(int(option_GlobalTurnParam.text), options_useGlobalTurnParam)
+
+        option_waypointTurnParam = basic_one_action.find('wpml:waypointTurnParam')
+        self.assertEqual(type(option_waypointTurnParam[0]), ET.Element)
+
+        options_useStraightLine = [
+            0,
+            1,
+        ]
+        option_useStraightLine = basic_one_action.find('wpml:useStraightLine')
+        self.assertIn(int(option_useStraightLine.text), options_useStraightLine)
+
+        option_gimbalPitchAngle = basic_one_action.find('wpml:gimbalPitchAngle')
+        self.assertEqual(type(float(option_gimbalPitchAngle.text)), float)
             
     def test_build_waypoint_xml_with_actions(self):
         # Check the build_waypoint_xml function for multiple (3 are tested) actions
@@ -751,6 +853,71 @@ class TestDjiWaypointMission(unittest.TestCase):
         # Check if all required elements are there
         for i in range(len(required_elements_in_Placemark)):
             self.assertEqual(basic_actions[i].tag, required_elements_in_Placemark[i])
+
+        # Check all values
+        check_point = basic_actions.find('Point')
+        option_coordinates = check_point[0]
+        self.assertEqual(option_coordinates.tag, 'coordinates')
+        option_long, option_lat = option_coordinates.text.split(',')
+        self.assertEqual(type(float(option_long)), float)
+        self.assertEqual(type(float(option_lat)), float)
+
+        check_index = basic_actions.find('wpml:index')
+        self.assertEqual(type(int(check_index.text)), int)
+        self.assertTrue(int(check_index.text) >= 0)
+
+        options_useGlobalHeight = [
+            0,
+            1,
+        ]
+        option_useGlobalHeight = basic_actions.find('wpml:useGlobalHeight')
+        self.assertIn(int(option_useGlobalHeight.text), options_useGlobalHeight)
+
+        option_ellipsoidHeight = basic_actions.find('wpml:ellipsoidHeight')
+        self.assertEqual(type(float(option_ellipsoidHeight.text)), float)
+        
+        option_height = basic_actions.find('wpml:height')
+        self.assertEqual(type(float(option_height.text)), float)
+
+        options_useGlobalSpeed = [
+            0,
+            1,
+        ]
+        option_useGlobalSpeed = basic_actions.find('wpml:useGlobalSpeed')
+        self.assertIn(int(option_useGlobalSpeed.text), options_useGlobalSpeed)
+
+        option_waypointSpeed = basic_actions.find('wpml:waypointSpeed')
+        self.assertEqual(type(float(option_waypointSpeed.text)), float)
+
+        options_useGlobalHeadingParam = [
+            0,
+            1,
+        ]
+        option_useGlobalHeadingParam = basic_actions.find('wpml:useGlobalHeadingParam')
+        self.assertIn(int(option_useGlobalHeadingParam.text), options_useGlobalHeadingParam)
+
+        option_waypointHeadingParam = basic_actions.find('wpml:waypointHeadingParam')
+        self.assertEqual(type(option_waypointHeadingParam[0]), ET.Element)
+
+        options_useGlobalTurnParam = [
+            0,
+            1,
+        ]
+        option_GlobalTurnParam = basic_actions.find('wpml:useGlobalTurnParam')
+        self.assertIn(int(option_GlobalTurnParam.text), options_useGlobalTurnParam)
+
+        option_waypointTurnParam = basic_actions.find('wpml:waypointTurnParam')
+        self.assertEqual(type(option_waypointTurnParam[0]), ET.Element)
+
+        options_useStraightLine = [
+            0,
+            1,
+        ]
+        option_useStraightLine = basic_actions.find('wpml:useStraightLine')
+        self.assertIn(int(option_useStraightLine.text), options_useStraightLine)
+
+        option_gimbalPitchAngle = basic_actions.find('wpml:gimbalPitchAngle')
+        self.assertEqual(type(float(option_gimbalPitchAngle.text)), float)
 
 
 if __name__ == '__main__':
