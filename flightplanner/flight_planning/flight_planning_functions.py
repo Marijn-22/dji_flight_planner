@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.spatial.transform import Rotation as R
 
 # Functions used for flightplanning for the DJI Matrice 300 RTK
 
@@ -66,15 +67,15 @@ def rotation_matrix(rot_x_axis, rot_y_axis, rot_z_axis):
     omg_z = rot_z_axis
     
     R1 = np.array(  [[1, 0, 0],
-                    [0, np.cos(omg_x), np.sin(omg_x)],
-                    [0, -np.sin(omg_x), np.cos(omg_x)]])
-    R2 = np.array(  [[np.cos(omg_y), 0, -np.sin(omg_y)],
+                    [0, np.cos(omg_x), -np.sin(omg_x)],
+                    [0, np.sin(omg_x), np.cos(omg_x)]])
+    R2 = np.array(  [[np.cos(omg_y), 0, np.sin(omg_y)],
                     [0, 1, 0],
-                    [np.sin(omg_y), 0, np.cos(omg_y)]])
-    R3 = np.array(  [[np.cos(omg_z), np.sin(omg_z), 0],
-                    [-np.sin(omg_z), np.cos(omg_z), 0],
+                    [-np.sin(omg_y), 0, np.cos(omg_y)]])
+    R3 = np.array(  [[np.cos(omg_z), -np.sin(omg_z), 0],
+                    [np.sin(omg_z), np.cos(omg_z), 0],
                     [0, 0, 1]])
-    rotation_matrix_3d = R1 @ R2 @ R3
+    rotation_matrix_3d = R3 @ R2 @ R1
     return rotation_matrix_3d
 
 def similarity_transformation3d(source_coordinates, translate_coordinates, rot_x_axis, rot_y_axis, rot_z_axis, scale = 1):
@@ -84,7 +85,7 @@ def similarity_transformation3d(source_coordinates, translate_coordinates, rot_x
     transformed_coordinates = scale * rotation_matrix_3d @ source_coordinates + translate_coordinates
     return transformed_coordinates
 
-def coordinated_turn_corner(x, y, damping_distance, z = None):
+def coordinated_turn_corner(x, y, damping_distances, z = None, amount = 3):
     ''' Calculates corner points for the coordinated turns option in the dji_kmz_creator to visualise the turn.'''
     points = np.zeros((3,len(x)))
     points[0,:] = x
@@ -103,25 +104,123 @@ def coordinated_turn_corner(x, y, damping_distance, z = None):
     plane_vectors = np.cross(L1_u, L2_u, axis=0)
 
     # rotations to new coordinate system in plane vector direction to z-direction original coordinate system
-    yz_vectors = plane_vectors[1:,:]
-    yz_vectors_norm = np.linalg.norm(yz_vectors, axis=0)
-    dot_product = plane_vectors[-1,:]
-    rots_x_axis = -np.arccos(dot_product/(1*yz_vectors_norm))
+    # yz_vectors = plane_vectors[1:,:]
+    # yz_vectors_norm = np.linalg.norm(yz_vectors, axis=0)
+    # dot_product = plane_vectors[-1,:]
+    # rots_x_axis2 = np.arccos(dot_product/(1*yz_vectors_norm))
 
-    xz_vectors = plane_vectors[::2,:]
-    xz_vectors_norm = np.linalg.norm(xz_vectors, axis=0)
-    dot_product = plane_vectors[-1,:]
-    rots_y_axis = -np.arccos(dot_product/(1*xz_vectors_norm))
+    # Find rotation angles to new coordinate system
+    rots_x_axis = np.arctan2(plane_vectors[1,:],plane_vectors[2,:])
+    rots_y_axis = np.zeros(len(rots_x_axis))
+    for i,rot_x_axis in enumerate(rots_x_axis):
+        inbetween_vector = (rotation_matrix(rot_x_axis, 0, 0)@plane_vectors[:,i])[np.newaxis].T
+        rots_y_axis[i] = -np.arctan2(inbetween_vector[0,0], inbetween_vector[2,0])
 
-    translate_array = np.array([[0],[0],[0]])
-    # Rotate vectors to new coordinate system
-    for i,(rot_x_axis, rot_y_axis) in enumerate(zip(rots_x_axis, rots_y_axis)):
-        point = points[:,i][np.newaxis].T
-        test_point = (rotation_matrix(rot_x_axis, rot_y_axis, 0)@point)
-        print('test',point,test_point)
+        # new = (rotation_matrix(rot_x_axis, rots_y_axis[i] , 0)@plane_vectors[:,i])[np.newaxis].T
+        # print(new)
+
+    turn_points_old_coords = np.zeros((3,amount+2,L1_u.shape[1]))
+
+    # Rotate the 3d vectors in direction of 2 neigbouring waypoints to 2d vector in this plane. 
+    for i in range(L1_u.shape[1]):
+        rotation_matrix_used = rotation_matrix(rots_x_axis[i], rots_y_axis[i], 0)
+        L1_u_new3d = rotation_matrix_used@(L1_u[:,i][np.newaxis].T)
+        L2_u_new3d = rotation_matrix_used@(L2_u[:,i][np.newaxis].T)
+        point_new3d = rotation_matrix_used@(points[:,i][np.newaxis].T)
+        
+        L1_u_new2d = L1_u_new3d[:2]
+        L2_u_new2d = L2_u_new3d[:2]
+        point_new2d = point_new3d[:2]
+
+        dot_product = L1_u_new2d.T @ L2_u_new2d
+        abs_total_angle = np.arccos(dot_product)
+
+        # Find the coordinates of the middle point of the turn.
+        middle_line_length = damping_distances[i]/np.cos(abs_total_angle/2)
+        middle_line_direction = L1_u_new2d + L2_u_new2d
+        middle_line_unit = middle_line_direction/np.linalg.norm(middle_line_direction) 
+        vector_to_middle_point = middle_line_length*middle_line_unit
+        middle_point_coord = point_new2d+vector_to_middle_point
+
+        # Find radius of the turn
+        turn_radius = np.tan(abs_total_angle/2)*damping_distances[i]
+
+        # Find start and end angle of turn
+        # First find start vector
+        first_waypoint_coord = (point_new2d+L1_u_new2d*damping_distances[i])
+        last_waypoint_coord = (point_new2d+L2_u_new2d*damping_distances[i])
+        start_vector = first_waypoint_coord-middle_point_coord 
+        end_vector = last_waypoint_coord-middle_point_coord 
+        start_angle = np.tan(start_vector[1],start_vector[0])
+        end_angle = np.tan(end_vector[1],end_vector[0])
+        
+        # Total turn angle increments
+        turn_angle_inc = (start_angle-end_angle)/amount
+
+        # Get points in 3d vector
+        turn_points_new_coords = np.zeros((3,amount+2))
+        turn_points_new_coords[:2,0] = first_waypoint_coord[:,0]
+        turn_points_new_coords[:2,-1] = last_waypoint_coord[:,0]
+        if amount != 0:
+            for j in range(amount):
+                turn_points_new_coords[0,j+1] = np.cos((turn_angle_inc*j)+start_angle)*turn_radius+middle_point_coord[0,0]
+                turn_points_new_coords[1,j+1] = np.sin((turn_angle_inc*j)+start_angle)*turn_radius+middle_point_coord[1,0]
+
+        # Get points in old coordinate system
+        for k in range(L1_u.shape[1]):
+            print(k)
+            print('i',i)
+            # print(rotation_matrix_used.T@(turn_points_new_coords[:,k][np.newaxis].T)[:,0])
+            turn_points_old_coords[:,k,i] = rotation_matrix_used.T@(turn_points_new_coords[:,k][np.newaxis].T)[:,0]
+
+    new_x = []
+    new_y = []
+    new_z = []
+    
+    # Add turn waypoints to the original waypoints
+    for i in range(turn_points_old_coords.shape[2]):
+        new_x.append(x[i])
+        new_x.append(turn_points_old_coords[0,:,i])
+
         
 
+    new_x.append(x[-1])
+    print(new_x)
     print(x)
+        # print('d', abs_total_angle, middle_point_coord)
+
+
+    # rots_y_axis = np.arctan2(inbetween_vectors[0,:],inbetween_vectors[2,:])
+    # test_vec2 = (rotation_matrix(0, -rots_y_axis, 0)@inbetween_vectors)
+    # print('testing', test_vec2)
+    # xz_vectors = plane_vectors[::2,:]
+    # xz_vectors_norm = np.linalg.norm(xz_vectors, axis=0)
+    # dot_product = plane_vectors[-1,:]
+    # rots_y_axis2 = np.arccos(dot_product/(1*xz_vectors_norm))
+    # rots_y_axis = np.arctan2(xz_vectors[0,:],xz_vectors[1,:])
+
+    # translate_array = np.array([[0],[0],[0]])
+    # # Rotate vectors to new coordinate system
+    # for i,(rot_x_axis, rot_y_axis) in enumerate(zip(rots_x_axis, rots_y_axis)):
+    #     point = points[:,i][np.newaxis].T
+
+    #     test_vec = (rotation_matrix(rot_x_axis, 0, 0)@plane_vectors[:,i][np.newaxis].T)
+    #     rot_y_axis = np.arctan2(test_vec[0,0],test_vec[2,0])
+    #     test_vec2 = (rotation_matrix(0, -rot_y_axis, 0)@test_vec)
+    #     print('ok__________________\n', test_vec2)
+
+        # print('should only contain z\n', rotation_matrix(0, rot_y_axis, 0)@plane_vectors[:,i][np.newaxis].T)
+        # r = R.from_euler('xy', [0,-rot_y_axis])#
+        # r2 = R.from_euler('xy', [rot_x_axis,0])
+        # tt = r.apply(plane_vectors[:,i])
+        # tt2 = r2.apply(plane_vectors[:,i])
+        # print('kkklll',tt,tt2)
+        # print('test',point,test_point)
+
+
+        
+
+    # print(x)
 
 def coordinated_turn_corners():
     pass
@@ -139,7 +238,7 @@ if __name__ == "__main__":
     ]
 
     max_lengths = find_all_max_waypointTurnDampingDists(points)
-    print(max_lengths)
+    # print(max_lengths)
 
     x = np.array((2,3,4,6,7,5,3,2))
     y = np.array((2,3,7,6,9,5,4,4))
