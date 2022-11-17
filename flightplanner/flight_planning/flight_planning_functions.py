@@ -77,10 +77,10 @@ def rotation_matrix(rot_x_axis, rot_y_axis, rot_z_axis):
     rotation_matrix_3d = R1 @ R2 @ R3
     return rotation_matrix_3d
 
-def similarity_transformation3d(source_coordinates, translate_coordinates, rot_xaxis, rot_y_axis, rot_z_axis, scale = 1):
+def similarity_transformation3d(source_coordinates, translate_coordinates, rot_x_axis, rot_y_axis, rot_z_axis, scale = 1):
     '''source_coordinates 3x1 matrix
     '''
-    rotation_matrix_3d = rotation_matrix(rot_xaxis, rot_y_axis, rot_z_axis)
+    rotation_matrix_3d = rotation_matrix(rot_x_axis, rot_y_axis, rot_z_axis)
     transformed_coordinates = scale * rotation_matrix_3d @ source_coordinates + translate_coordinates
     return transformed_coordinates
 
@@ -113,8 +113,13 @@ def coordinated_turn_corner(x, y, damping_distance, z = None):
     dot_product = plane_vectors[-1,:]
     rots_y_axis = -np.arccos(dot_product/(1*xz_vectors_norm))
 
-    for rot_x_axis, rot_y_axis in zip(rots_x_axis,rots_y_axis):
-        pass
+    translate_array = np.array([[0],[0],[0]])
+    # Rotate vectors to new coordinate system
+    for i,(rot_x_axis, rot_y_axis) in enumerate(zip(rots_x_axis, rots_y_axis)):
+        point = points[:,i][np.newaxis].T
+        test_point = (rotation_matrix(rot_x_axis, rot_y_axis, 0)@point)
+        print('test',point,test_point)
+        
 
     print(x)
 
