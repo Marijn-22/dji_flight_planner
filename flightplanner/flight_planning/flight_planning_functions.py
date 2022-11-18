@@ -85,7 +85,7 @@ def similarity_transformation3d(source_coordinates, translate_coordinates, rot_x
     transformed_coordinates = scale * rotation_matrix_3d @ source_coordinates + translate_coordinates
     return transformed_coordinates
 
-def coordinated_turn_corner(x, y, damping_distances, z = None, amount = 3):
+def coordinated_turn_corners(x, y, damping_distances, z = None, amount = 0):
     ''' Calculates corner points for the coordinated turns option in the dji_kmz_creator to visualise the turn.'''
     points = np.zeros((3,len(x)))
     points[0,:] = x
@@ -99,10 +99,10 @@ def coordinated_turn_corner(x, y, damping_distances, z = None, amount = 3):
         [z[0]],
     ]
     )
-    points = points - translate_vector
+    #points = points - translate_vector
 
     # Vectors in direction from point
-    L1 = np.flip(np.diff(np.flip(points, axis = 1), axis=1))[:,:-1]
+    L1 = np.fliplr(np.diff(np.fliplr(points)))[:,:-1]
     L2 = np.diff(points, axis=1)[:,1:]
 
     # unit vectors in direction from point
@@ -124,7 +124,8 @@ def coordinated_turn_corner(x, y, damping_distances, z = None, amount = 3):
     for i,rot_x_axis in enumerate(rots_x_axis):
         inbetween_vector = (rotation_matrix(rot_x_axis, 0, 0)@plane_vectors[:,i])[np.newaxis].T
         rots_y_axis[i] = -np.arctan2(inbetween_vector[0,0], inbetween_vector[2,0])
-
+        # new_plane_vector = rotation_matrix(0, rots_y_axis[i], 0)@inbetween_vector
+        # print(new_plane_vector)
         # new = (rotation_matrix(rot_x_axis, rots_y_axis[i] , 0)@plane_vectors[:,i])[np.newaxis].T
         # print(new)
 
@@ -135,7 +136,7 @@ def coordinated_turn_corner(x, y, damping_distances, z = None, amount = 3):
         rotation_matrix_used = rotation_matrix(rots_x_axis[i], rots_y_axis[i], 0)
         L1_u_new3d = rotation_matrix_used@(L1_u[:,i][np.newaxis].T)
         L2_u_new3d = rotation_matrix_used@(L2_u[:,i][np.newaxis].T)
-        point_new3d = rotation_matrix_used@(points[:,i][np.newaxis].T)
+        point_new3d = rotation_matrix_used@(points[:,i+1][np.newaxis].T)
         
         L1_u_new2d = L1_u_new3d[:2]
         L2_u_new2d = L2_u_new3d[:2]
@@ -163,14 +164,13 @@ def coordinated_turn_corner(x, y, damping_distances, z = None, amount = 3):
         start_angle = np.tan(start_vector[1],start_vector[0])
         end_angle = np.tan(end_vector[1],end_vector[0])
         
-        # Total turn angle increments
-        turn_angle_inc = (start_angle-end_angle)/amount
-
         # Get points in 3d vector
         turn_points_new_coords = np.zeros((3,amount+2))
         turn_points_new_coords[:2,0] = first_waypoint_coord[:,0]
         turn_points_new_coords[:2,-1] = last_waypoint_coord[:,0]
         if amount != 0:
+            # Total turn angle increments
+            turn_angle_inc = (start_angle-end_angle)/amount
             for j in range(amount):
                 turn_points_new_coords[0,j+1] = np.cos((turn_angle_inc*j)+start_angle)*turn_radius+middle_point_coord[0,0]
                 turn_points_new_coords[1,j+1] = np.sin((turn_angle_inc*j)+start_angle)*turn_radius+middle_point_coord[1,0]
@@ -178,7 +178,7 @@ def coordinated_turn_corner(x, y, damping_distances, z = None, amount = 3):
         # Get points in old coordinate system
         for k in range(turn_points_new_coords.shape[1]):
             # print(rotation_matrix_used.T@(turn_points_new_coords[:,k][np.newaxis].T)[:,0])
-            turn_points_old_coords[:,k,i] = rotation_matrix_used.T@(turn_points_new_coords[:,k][np.newaxis].T)[:,0]+translate_vector[:,0]
+            turn_points_old_coords[:,k,i] = rotation_matrix_used.T@(turn_points_new_coords[:,k][np.newaxis].T)[:,0] #+translate_vector[:,0]
 
     new_x = [x[0]]
     new_y = [y[0]]
@@ -230,8 +230,7 @@ def coordinated_turn_corner(x, y, damping_distances, z = None, amount = 3):
 
     # print(x)
 
-def coordinated_turn_corners():
-    pass
+
 
 def add_imu_movement():
     pass
@@ -248,10 +247,15 @@ if __name__ == "__main__":
     max_lengths = find_all_max_waypointTurnDampingDists(points)
     # print(max_lengths)
 
-    x = np.array((2,3,4,6,7,5,3,2))
-    y = np.array((2,3,7,6,9,5,4,4))
-    z = np.array((6,1,9,4,7,3,2,4))
-    d = np.array((0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5))
-    coordinated_turn_corner(x, y, d, z = z)
+    # x = np.array((2,3,4,6,7,5,3,2))
+    # y = np.array((2,3,7,6,9,5,4,4))
+    # z = np.array((6,1,9,4,7,3,2,4))
+    # d = np.array((0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5))
+    x = np.array((0,0,4,4))
+    y = np.array((-2,1,1,3))
+    z = np.array((0,0,0,0))
+    d = np.array((0.5,0.5,0.5,0.5))
+    coordinated_turn_corners(x, y, d, z = z)
+    # to check norm np.sqrt((new_x[1]-x[1])**2+(new_y[1]-y[1])**2+(new_z[1]-z[1])**2)
 
 

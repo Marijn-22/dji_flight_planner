@@ -15,7 +15,7 @@ import pyproj
 import shapely as sh
 import time
 from pyproj import Transformer
-import simplekml as skml
+# import simplekml as skml
 import xml.etree.ElementTree as ET
 import os
 
@@ -90,9 +90,9 @@ body_controls2 = dbc.Card(
             dcc.Slider(id="buffer_slider", min=0, max=20, step=0.1, value=5)
         ]),
 
-        html.Div('Damping: 0.1 meter(s)', id = 'damping_text'),
+        html.Div('Damping: 0.2 meter(s)', id = 'damping_text'),
         html.Div([
-            dcc.Slider(id="damping_slider", min=0.1, max=50, step=0.1, value=0.1)
+            dcc.Slider(id="damping_slider", min=0.1, max=50, step=0.1, value=0.2)
         ]),
         
         html.Div([
@@ -115,6 +115,7 @@ body_output_flightplan = html.Div([
         dl.TileLayer(), 
         dl.GeoJSON(id="geojson", options=dict(pointToLayer=point_to_layer), zoomToBounds=True),
         dl.GeoJSON(id ="flight_lines", options=dict(pointToLayer=point_to_layer)),
+        dl.GeoJSON(id ="waypoints_multipoint", options=dict(pointToLayer=point_to_layer)),
         ], style={'width': '100%', 'height': '87vh', 'margin': "auto", "display": "inline-block"}, id="mirror"),
     ])
 
@@ -258,6 +259,7 @@ def flightcoordinates(polygon_coords: np.array, angle: float, offset: float, buf
 @app.callback(
     Output("waypoints","data"),
     Output("flight_lines","data"),
+    Output("waypoints_multipoint","data"),
     Output('angle_text','children'),
     Output('offset_text','children'),
     Output('buffer_text','children'),
@@ -282,12 +284,31 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping):
     epsg_leaflet = 4326
     
     points_coords, sh_overlapping_lines = flightcoordinates(xy_coords , angle, offset, buffer, 40)
+    
+    points_coords_x = np.zeros(len(points_coords))
+    points_coords_y = np.zeros(len(points_coords))
+    for i in range(len(points_coords)):
+        points_coords_x[i] = points_coords[i][0]
+        points_coords_y[i] = points_coords[i][1]
 
     #### Calculate added point coordinates for smooth corners
-    
+    # Find max allowed waypointTurnDampingDists for each point
+    print('points_coords', points_coords)
+    checked_waypointTurnDampingDists = fp.find_all_max_waypointTurnDampingDists(xy_coords, max_setting = float(damping))
+    print('damp',len(checked_waypointTurnDampingDists))
+    print('x',len(points_coords_x))
+    new_x, new_y, new_z = fp.coordinated_turn_corners(points_coords_x,points_coords_y, checked_waypointTurnDampingDists, z = np.zeros(len(points_coords_y)), amount = 2)
+    new_points_coords = []
+    for i in range(len(new_x)):
+        new_points_coords.append(np.array((new_x[i],new_y[i])))
+
+    print('new points coords', new_points_coords)
 
     #### Visualize the flight plan
-    sh_linestring_flight_plan = LineString(points_coords)
+    # sh_linestring_flight_plan = LineString(points_coords) # working
+    sh_linestring_flight_plan = LineString(new_points_coords) 
+    sh_waypoints_flight_plan = MultiPoint(points_coords)
+    # sh_linestring_flight_plan = LineString(new_points_coords)
 
     # Transform the coordinates
     transformer2 = Transformer.from_crs(epsg_local,
@@ -295,11 +316,15 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping):
                                         always_xy=True,  # to make sure xy coords to lat/lon goes correctly
                                         ).transform
     sh_linestring_flight_plan_crs_leaflet = TransForm(transformer2, sh_linestring_flight_plan)
+    sh_waypoints_flight_plan_crs_leaflet = TransForm(transformer2, sh_waypoints_flight_plan)
 
     # Get the coordinates in readable geojson format for dash_leaflet library
     sh_linestring_flight_plan_crs_leaflet_geojson_step1 = sh.geometry.mapping(sh_linestring_flight_plan_crs_leaflet)
     sh_linestring_flight_plan_crs_leaflet_geojson = {'type': 'GeometryCollection', 'features':[sh_linestring_flight_plan_crs_leaflet_geojson_step1]}
     
+    sh_waypoints_flight_plan_crs_leaflet_geojson_step1 = sh.geometry.mapping(sh_waypoints_flight_plan_crs_leaflet)
+    sh_waypoints_flight_plan_crs_leaflet_geojson = {'type': 'GeometryCollection', 'features':[sh_waypoints_flight_plan_crs_leaflet_geojson_step1]}
+
     # Get coordinates in string format to store in dcc.Store for cross function use
     np_array_points_coords = np.squeeze(points_coords)
     dcc_local_crs_waypoints = json.dumps({"x": np_array_points_coords[:,0].tolist() , "y" : np_array_points_coords[:,1].tolist() , "epsg": epsg_local})
@@ -314,7 +339,7 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping):
     string_buffer = f"Buffer: {buffer} meter(s)"
     string_damping = f"Damping: {damping} meter(s)"
 
-    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer, string_damping
+    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer, string_damping
 
 
 @app.callback(
