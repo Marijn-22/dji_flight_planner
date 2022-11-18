@@ -293,12 +293,12 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping):
 
     #### Calculate added point coordinates for smooth corners
     # Find max allowed waypointTurnDampingDists for each point
-    print('points_coords', array_flight_points_coords)
+    # print('points_coords', array_flight_points_coords)
     # print('ttestt',np.sqrt(np.sum(array_flight_points_coords**2, axis = 1)))
     checked_waypointTurnDampingDists = fp.find_all_max_waypointTurnDampingDists(array_flight_points_coords, max_setting = float(damping))
     # checked_waypointTurnDampingDists  =5
-    print('damp',len(checked_waypointTurnDampingDists))
-    print('x',len(points_coords_x))
+    # print('damp',len(checked_waypointTurnDampingDists))
+    # print('x',len(points_coords_x))
     new_x, new_y, new_z = fp.coordinated_turn_corners(points_coords_x,points_coords_y, checked_waypointTurnDampingDists, z = np.zeros(len(points_coords_y)), amount = 0)
     new_points_coords = []
     for i in range(len(new_x)):

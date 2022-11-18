@@ -89,6 +89,8 @@ def similarity_transformation3d(source_coordinates, translate_coordinates, rot_x
 
 def coordinated_turn_corners(x, y, damping_distances, z = None, amount = 0):
     ''' Calculates corner points for the coordinated turns option in the dji_kmz_creator to visualise the turn.'''
+    print('d',len(damping_distances))
+    print('x',len(x))
     points = np.zeros((3,len(x)))
     points[0,:] = x
     points[1,:] = y
@@ -148,19 +150,19 @@ def coordinated_turn_corners(x, y, damping_distances, z = None, amount = 0):
         abs_total_angle = np.arccos(dot_product)
 
         # Find the coordinates of the middle point of the turn.
-        middle_line_length = damping_distances[i]/np.cos(abs_total_angle/2)
+        middle_line_length = damping_distances[i+1]/np.cos(abs_total_angle/2)
         middle_line_direction = L1_u_new2d + L2_u_new2d
         middle_line_unit = middle_line_direction/np.linalg.norm(middle_line_direction) 
         vector_to_middle_point = middle_line_length*middle_line_unit
         middle_point_coord = point_new2d+vector_to_middle_point
 
         # Find radius of the turn
-        turn_radius = np.tan(abs_total_angle/2)*damping_distances[i]
+        turn_radius = np.tan(abs_total_angle/2)*damping_distances[i+1]
 
         # Find start and end angle of turn
         # First find start vector
-        first_waypoint_coord = (point_new2d+L1_u_new2d*damping_distances[i])
-        last_waypoint_coord = (point_new2d+L2_u_new2d*damping_distances[i])
+        first_waypoint_coord = (point_new2d+L1_u_new2d*damping_distances[i+1])
+        last_waypoint_coord = (point_new2d+L2_u_new2d*damping_distances[i+1])
         start_vector = first_waypoint_coord-middle_point_coord 
         end_vector = last_waypoint_coord-middle_point_coord 
         start_angle = np.tan(start_vector[1],start_vector[0])
