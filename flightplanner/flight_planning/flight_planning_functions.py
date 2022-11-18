@@ -92,6 +92,15 @@ def coordinated_turn_corner(x, y, damping_distances, z = None, amount = 3):
     points[1,:] = y
     points[2,:] = z
 
+    # Translate all vectors to a value closer to zero
+    translate_vector = np.array([
+        [x[0]],
+        [y[0]],
+        [z[0]],
+    ]
+    )
+    points = points - translate_vector
+
     # Vectors in direction from point
     L1 = np.flip(np.diff(np.flip(points, axis = 1), axis=1))[:,:-1]
     L2 = np.diff(points, axis=1)[:,1:]
@@ -167,26 +176,25 @@ def coordinated_turn_corner(x, y, damping_distances, z = None, amount = 3):
                 turn_points_new_coords[1,j+1] = np.sin((turn_angle_inc*j)+start_angle)*turn_radius+middle_point_coord[1,0]
 
         # Get points in old coordinate system
-        for k in range(L1_u.shape[1]):
-            print(k)
-            print('i',i)
+        for k in range(turn_points_new_coords.shape[1]):
             # print(rotation_matrix_used.T@(turn_points_new_coords[:,k][np.newaxis].T)[:,0])
-            turn_points_old_coords[:,k,i] = rotation_matrix_used.T@(turn_points_new_coords[:,k][np.newaxis].T)[:,0]
+            turn_points_old_coords[:,k,i] = rotation_matrix_used.T@(turn_points_new_coords[:,k][np.newaxis].T)[:,0]+translate_vector[:,0]
 
-    new_x = []
-    new_y = []
-    new_z = []
+    new_x = [x[0]]
+    new_y = [y[0]]
+    new_z = [z[0]]
     
-    # Add turn waypoints to the original waypoints
-    for i in range(turn_points_old_coords.shape[2]):
-        new_x.append(x[i])
-        new_x.append(turn_points_old_coords[0,:,i])
-
-        
+    # Add turn waypoints to the original waypoints at the start and end
+    for i in range(L1_u.shape[1]):
+        new_x.extend(turn_points_old_coords[0,:,i])
+        new_y.extend(turn_points_old_coords[1,:,i])
+        new_z.extend(turn_points_old_coords[2,:,i])
 
     new_x.append(x[-1])
-    print(new_x)
-    print(x)
+    new_y.append(y[-1])
+    new_z.append(z[-1])
+
+    return new_x, new_y, new_z
         # print('d', abs_total_angle, middle_point_coord)
 
 
