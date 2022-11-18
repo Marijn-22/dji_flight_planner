@@ -38,7 +38,9 @@ def find_all_max_waypointTurnDampingDists(points: np.array, max_setting: float |
         (float): Max damping distance allowed for these points in meters
     '''
     diff_xy = np.diff(points, axis = 0)
-    lengths = np.sqrt(np.sum(diff_xy**2, axis = 1))
+    print('shape', diff_xy.shape)
+    # print('test\n',np.sqrt(np.sum(diff_xy**2, axis = 1)))
+    lengths = (np.sum(diff_xy**2, axis = 1))**0.5
     lengths_before = lengths[:-1]
     lengths_after = lengths[1:]
     max_allowed_lengths = np.zeros(len(points))

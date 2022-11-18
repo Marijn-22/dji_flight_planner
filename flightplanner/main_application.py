@@ -92,7 +92,7 @@ body_controls2 = dbc.Card(
 
         html.Div('Damping: 0.2 meter(s)', id = 'damping_text'),
         html.Div([
-            dcc.Slider(id="damping_slider", min=0.1, max=50, step=0.1, value=0.2)
+            dcc.Slider(id="damping_slider", min=0.2, max=50, step=0.1, value=0.2)
         ]),
         
         html.Div([
@@ -285,19 +285,21 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping):
     
     points_coords, sh_overlapping_lines = flightcoordinates(xy_coords , angle, offset, buffer, 40)
     
-    points_coords_x = np.zeros(len(points_coords))
-    points_coords_y = np.zeros(len(points_coords))
-    for i in range(len(points_coords)):
-        points_coords_x[i] = points_coords[i][0]
-        points_coords_y[i] = points_coords[i][1]
+    array_flight_points_coords = np.asarray(points_coords)
+
+
+    points_coords_x = array_flight_points_coords[:,0]
+    points_coords_y = array_flight_points_coords[:,1]
 
     #### Calculate added point coordinates for smooth corners
     # Find max allowed waypointTurnDampingDists for each point
-    print('points_coords', points_coords)
-    checked_waypointTurnDampingDists = fp.find_all_max_waypointTurnDampingDists(xy_coords, max_setting = float(damping))
+    print('points_coords', array_flight_points_coords)
+    # print('ttestt',np.sqrt(np.sum(array_flight_points_coords**2, axis = 1)))
+    checked_waypointTurnDampingDists = fp.find_all_max_waypointTurnDampingDists(array_flight_points_coords, max_setting = float(damping))
+    # checked_waypointTurnDampingDists  =5
     print('damp',len(checked_waypointTurnDampingDists))
     print('x',len(points_coords_x))
-    new_x, new_y, new_z = fp.coordinated_turn_corners(points_coords_x,points_coords_y, checked_waypointTurnDampingDists, z = np.zeros(len(points_coords_y)), amount = 2)
+    new_x, new_y, new_z = fp.coordinated_turn_corners(points_coords_x,points_coords_y, checked_waypointTurnDampingDists, z = np.zeros(len(points_coords_y)), amount = 0)
     new_points_coords = []
     for i in range(len(new_x)):
         new_points_coords.append(np.array((new_x[i],new_y[i])))
