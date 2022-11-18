@@ -299,12 +299,12 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping):
     # checked_waypointTurnDampingDists  =5
     # print('damp',len(checked_waypointTurnDampingDists))
     # print('x',len(points_coords_x))
-    new_x, new_y, new_z = fp.coordinated_turn_corners(points_coords_x,points_coords_y, checked_waypointTurnDampingDists, z = np.zeros(len(points_coords_y)), amount = 0)
+    new_x, new_y, new_z = fp.coordinated_turn_corners(points_coords_x,points_coords_y, checked_waypointTurnDampingDists, z = np.zeros(len(points_coords_y)), amount = 5)
     new_points_coords = []
     for i in range(len(new_x)):
         new_points_coords.append(np.array((new_x[i],new_y[i])))
 
-    print('new points coords', new_points_coords)
+    # print('new points coords', new_points_coords)
 
     #### Visualize the flight plan
     # sh_linestring_flight_plan = LineString(points_coords) # working

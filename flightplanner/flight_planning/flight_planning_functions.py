@@ -87,7 +87,7 @@ def similarity_transformation3d(source_coordinates, translate_coordinates, rot_x
     transformed_coordinates = scale * rotation_matrix_3d @ source_coordinates + translate_coordinates
     return transformed_coordinates
 
-def coordinated_turn_corners(x, y, damping_distances, z = None, amount = 0):
+def coordinated_turn_corners(x, y, damping_distances, z = None, amount = 2):
     ''' Calculates corner points for the coordinated turns option in the dji_kmz_creator to visualise the turn.'''
     print('d',len(damping_distances))
     print('x',len(x))
@@ -165,16 +165,20 @@ def coordinated_turn_corners(x, y, damping_distances, z = None, amount = 0):
         last_waypoint_coord = (point_new2d+L2_u_new2d*damping_distances[i+1])
         start_vector = first_waypoint_coord-middle_point_coord 
         end_vector = last_waypoint_coord-middle_point_coord 
-        start_angle = np.tan(start_vector[1],start_vector[0])
-        end_angle = np.tan(end_vector[1],end_vector[0])
+        start_angle = np.arctan2(start_vector[1],start_vector[0])
+        end_angle = np.arctan2(end_vector[1],end_vector[0])
         
         # Get points in 3d vector
         turn_points_new_coords = np.zeros((3,amount+2))
         turn_points_new_coords[:2,0] = first_waypoint_coord[:,0]
         turn_points_new_coords[:2,-1] = last_waypoint_coord[:,0]
+
         if amount != 0:
             # Total turn angle increments
-            turn_angle_inc = (start_angle-end_angle)/amount
+            total_angle = -(start_angle-end_angle)
+            # if abs(total_angle) > np.pi:
+            #     total_angle = (total_angle - np.pi)*(total_angle/abs(total_angle)) #keeps the sign
+            turn_angle_inc = total_angle/amount
             for j in range(amount):
                 turn_points_new_coords[0,j+1] = np.cos((turn_angle_inc*j)+start_angle)*turn_radius+middle_point_coord[0,0]
                 turn_points_new_coords[1,j+1] = np.sin((turn_angle_inc*j)+start_angle)*turn_radius+middle_point_coord[1,0]
