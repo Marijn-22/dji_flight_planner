@@ -13,7 +13,7 @@ from scipy.spatial.transform import Rotation as R
 #         points: List containing first the previous point, then the point
 #             of interest and third the next point. These points must be
 #             given in an square coordinate system in meters.
-    
+#    
 #     Returns:
 #         (float): Max damping distance allowed for this point in meters
 #     '''
@@ -38,7 +38,7 @@ def find_all_max_waypointTurnDampingDists(points: np.array, max_setting: float |
         (float): Max damping distance allowed for these points in meters
     '''
     diff_xy = np.diff(points, axis = 0)
-    print('shape', diff_xy.shape)
+    # print('shape', diff_xy.shape)
     # print('test\n',np.sqrt(np.sum(diff_xy**2, axis = 1)))
     lengths = (np.sum(diff_xy**2, axis = 1))**0.5
     lengths_before = lengths[:-1]
@@ -89,8 +89,11 @@ def similarity_transformation3d(source_coordinates, translate_coordinates, rot_x
 
 def coordinated_turn_corners(x, y, damping_distances, z = None, amount = 2):
     ''' Calculates corner points for the coordinated turns option in the dji_kmz_creator to visualise the turn.'''
-    print('d',len(damping_distances))
-    print('x',len(x))
+    # print('d',len(damping_distances))
+    index_zero_angle = []
+    index_zero_angle_coord = []
+    # print(index_zero_angle)
+
     points = np.zeros((3,len(x)))
     points[0,:] = x
     points[1,:] = y
@@ -103,7 +106,7 @@ def coordinated_turn_corners(x, y, damping_distances, z = None, amount = 2):
         [z[0]],
     ]
     )
-    #points = points - translate_vector
+    points = points - translate_vector
 
     # Vectors in direction from point
     L1 = np.fliplr(np.diff(np.fliplr(points)))[:,:-1]
@@ -128,10 +131,6 @@ def coordinated_turn_corners(x, y, damping_distances, z = None, amount = 2):
     for i,rot_x_axis in enumerate(rots_x_axis):
         inbetween_vector = (rotation_matrix(rot_x_axis, 0, 0)@plane_vectors[:,i])[np.newaxis].T
         rots_y_axis[i] = -np.arctan2(inbetween_vector[0,0], inbetween_vector[2,0])
-        # new_plane_vector = rotation_matrix(0, rots_y_axis[i], 0)@inbetween_vector
-        # print(new_plane_vector)
-        # new = (rotation_matrix(rot_x_axis, rots_y_axis[i] , 0)@plane_vectors[:,i])[np.newaxis].T
-        # print(new)
 
     turn_points_old_coords = np.zeros((3,amount+2,L1_u.shape[1]))
 
@@ -152,45 +151,60 @@ def coordinated_turn_corners(x, y, damping_distances, z = None, amount = 2):
         # Find the coordinates of the middle point of the turn.
         middle_line_length = damping_distances[i+1]/np.cos(abs_total_angle/2)
         middle_line_direction = L1_u_new2d + L2_u_new2d
-        middle_line_unit = middle_line_direction/np.linalg.norm(middle_line_direction) 
-        vector_to_middle_point = middle_line_length*middle_line_unit
-        middle_point_coord = point_new2d+vector_to_middle_point
+        # Check if direction to and from the waypoint are in the same direction or oposite
+        # This will result in division by zero in these cases. (so angle 0 rad or pi rad)
+        if np.linalg.norm(middle_line_direction) > 1e-14:
+            middle_line_unit = middle_line_direction/np.linalg.norm(middle_line_direction) 
+            vector_to_middle_point = middle_line_length*middle_line_unit
+            middle_point_coord = point_new2d+vector_to_middle_point
 
-        # Find radius of the turn
-        turn_radius = np.tan(abs_total_angle/2)*damping_distances[i+1]
+            # Find radius of the turn
+            turn_radius = np.tan(abs_total_angle/2)*damping_distances[i+1]
 
-        # Find start and end angle of turn
-        # First find start vector
-        first_waypoint_coord = (point_new2d+L1_u_new2d*damping_distances[i+1])
-        last_waypoint_coord = (point_new2d+L2_u_new2d*damping_distances[i+1])
-        start_vector = first_waypoint_coord-middle_point_coord 
-        end_vector = last_waypoint_coord-middle_point_coord 
-        start_angle = np.arctan2(start_vector[1],start_vector[0])
-        end_angle = np.arctan2(end_vector[1],end_vector[0])
-        
-        # Get points in 3d vector
-        turn_points_new_coords = np.zeros((3,amount+2))
-        turn_points_new_coords[:2,0] = first_waypoint_coord[:,0]
-        turn_points_new_coords[:2,-1] = last_waypoint_coord[:,0]
+            # Find start and end angle of turn
+            # First find start vector
+            first_waypoint_coord = (point_new2d+L1_u_new2d*damping_distances[i+1])
+            last_waypoint_coord = (point_new2d+L2_u_new2d*damping_distances[i+1])
+            start_vector = first_waypoint_coord-middle_point_coord 
+            end_vector = last_waypoint_coord-middle_point_coord 
+            start_angle = np.arctan2(start_vector[1],start_vector[0])
+            end_angle = np.arctan2(end_vector[1],end_vector[0])
+            
+            # Get points in 3d vector
+            turn_points_new_coords = np.zeros((3,amount+2))
+            turn_points_new_coords[:2,0] = first_waypoint_coord[:,0]
+            turn_points_new_coords[:2,-1] = last_waypoint_coord[:,0]
 
-        if amount != 0:
-            # Total turn angle increments
-            total_angle = -(start_angle-end_angle)
-            # if abs(total_angle) > np.pi:
-            #     total_angle = (total_angle - np.pi)*(total_angle/abs(total_angle)) #keeps the sign
-            turn_angle_inc = total_angle/amount
-            for j in range(amount):
-                turn_points_new_coords[0,j+1] = np.cos((turn_angle_inc*j)+start_angle)*turn_radius+middle_point_coord[0,0]
-                turn_points_new_coords[1,j+1] = np.sin((turn_angle_inc*j)+start_angle)*turn_radius+middle_point_coord[1,0]
+            if amount != 0:
+                # Total turn angle increments. Should always be smaller than pi rad.
+                total_angle = -(start_angle-end_angle)
+                if abs(total_angle) > np.pi:
+                    total_angle = (2*np.pi - abs(total_angle))*-(total_angle/abs(total_angle)) #keeps the sign
+                
+                # Angle increments based on amount 
+                turn_angle_inc = total_angle/amount
+                for j in range(amount):
+                    turn_points_new_coords[0,j+1] = np.cos((turn_angle_inc*j)+start_angle)*turn_radius+middle_point_coord[0,0]
+                    turn_points_new_coords[1,j+1] = np.sin((turn_angle_inc*j)+start_angle)*turn_radius+middle_point_coord[1,0]
 
-        # Get points in old coordinate system
-        for k in range(turn_points_new_coords.shape[1]):
-            # print(rotation_matrix_used.T@(turn_points_new_coords[:,k][np.newaxis].T)[:,0])
-            turn_points_old_coords[:,k,i] = rotation_matrix_used.T@(turn_points_new_coords[:,k][np.newaxis].T)[:,0] #+translate_vector[:,0]
+            # Get points in old coordinate system
+            for k in range(turn_points_new_coords.shape[1]):
+                # print(rotation_matrix_used.T@(turn_points_new_coords[:,k][np.newaxis].T)[:,0])
+                turn_points_old_coords[:,k,i] = rotation_matrix_used.T@(turn_points_new_coords[:,k][np.newaxis].T)[:,0] #+translate_vector[:,0]
 
-    new_x = [x[0]]
-    new_y = [y[0]]
-    new_z = [z[0]]
+        else:
+            # Add indexes where this is middle line has 0 length
+            index_zero_angle.append(i)
+            # Find start and end coordinate in case of 0 or 180 degree turn
+            start_coord = points[:,i][np.newaxis].T + L1_u[:,i][np.newaxis].T*damping_distances[i+1]
+            end_coord = points[:,i][np.newaxis].T + L2_u[:,i][np.newaxis].T*damping_distances[i+1]
+            start_end_coord_tuple = (start_coord,end_coord)
+            index_zero_angle_coord.append(start_end_coord_tuple)
+
+
+    new_x = [points[0,0]]
+    new_y = [points[1,0]]
+    new_z = [points[2,0]]
     
     # Add turn waypoints to the original waypoints at the start and end
     for i in range(L1_u.shape[1]):
@@ -198,9 +212,35 @@ def coordinated_turn_corners(x, y, damping_distances, z = None, amount = 2):
         new_y.extend(turn_points_old_coords[1,:,i])
         new_z.extend(turn_points_old_coords[2,:,i])
 
-    new_x.append(x[-1])
-    new_y.append(y[-1])
-    new_z.append(z[-1])
+    # Add start and end coordinates for 0 or 180 degree turn
+    if len(index_zero_angle) != 0:
+        for i in range(len(index_zero_angle)):
+            # work backwards
+            i = len(index_zero_angle)-i-1
+            index = 1 + ((amount+2)*index_zero_angle[i]) 
+
+            # Remove empty coordinates
+            del new_x[index:index+(amount+2)]
+            del new_y[index:index+(amount+2)]
+            del new_z[index:index+(amount+2)]
+            # Insert first coordinate
+            new_x.insert(index,index_zero_angle_coord[i][0][0,0])
+            new_y.insert(index,index_zero_angle_coord[i][0][1,0])
+            new_z.insert(index,index_zero_angle_coord[i][0][2,0])            
+            # Insert second coordinate
+            new_x.insert(index+1,index_zero_angle_coord[i][1][0,0])
+            new_y.insert(index+1,index_zero_angle_coord[i][1][1,0])
+            new_z.insert(index+1,index_zero_angle_coord[i][1][2,0])
+
+    new_x.append(points[0,-1])
+    new_y.append(points[1,-1])
+    new_z.append(points[2,-1])
+
+    # print(new_x)
+    # translate the coordinates back
+    new_x = np.asarray(new_x) + translate_vector[0]
+    new_y = np.asarray(new_y) + translate_vector[1]
+    new_z = np.asarray(new_z) + translate_vector[2]
 
     return new_x, new_y, new_z
         # print('d', abs_total_angle, middle_point_coord)
@@ -259,11 +299,15 @@ if __name__ == "__main__":
     # y = np.array((2,3,7,6,9,5,4,4))
     # z = np.array((6,1,9,4,7,3,2,4))
     # d = np.array((0.5,0.5,0.5,0.5,0.5,0.5,0.5,0.5))
-    x = np.array((0,0,4,4))
-    y = np.array((-2,1,1,3))
+    # x = np.array((0,0,4,4))
+    # y = np.array((-2,1,1,3))
+    x = np.array((2,2,2,2))
+    y = np.array((0,1,2,-5))
+
     z = np.array((0,0,0,0))
     d = np.array((0.5,0.5,0.5,0.5))
-    coordinated_turn_corners(x, y, d, z = z)
+    nx,ny,nz = coordinated_turn_corners(x, y, d, z = z, amount=2)
+    print('ny',ny)
     # to check norm np.sqrt((new_x[1]-x[1])**2+(new_y[1]-y[1])**2+(new_z[1]-z[1])**2)
 
 
