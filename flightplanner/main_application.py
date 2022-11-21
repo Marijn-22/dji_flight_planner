@@ -208,53 +208,7 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
 
     return transformed_coords
 
-def make_multi_linestring(xmin, ymin, xmax, ymax, offset, distance_between_lines):
-    amount_of_lines_float = abs(xmax - xmin)/distance_between_lines
-    amount_of_lines_roundedup = int(amount_of_lines_float) + (distance_between_lines % abs(xmax - xmin) > 0)
-    coords = []
-    for i in range(amount_of_lines_roundedup):
-        xline = xmin + i*distance_between_lines + offset*distance_between_lines
-        coords.append(((xline,ymin),(xline,ymax)))
-    return MultiLineString(coords)
 
-
-def flightcoordinates(polygon_coords: np.array, angle: float, offset: float, buffer: float, distance_between_flight_lines: float):
-    # Add buffer to the drawn polygon
-    sh_poly = Polygon(polygon_coords).buffer(buffer)
-    xmin_no_rotation, ymin_no_rotation, xmax_no_rotation, ymax_no_rotation = sh_poly.bounds
-
-    # Rotate the polygon to be able to make rotated flightlines
-    sh_poly_negative_rotation = sh.affinity.rotate(sh_poly, -angle, origin=(xmin_no_rotation,ymin_no_rotation))
-    
-    sh_poly_negative_rotation_bounds = sh_poly_negative_rotation.bounds
-    xmin, ymin, xmax, ymax = sh_poly_negative_rotation_bounds
-    
-    #Make linestrings vertical to be used as flightlines
-    multi_line_string_flightdirection = make_multi_linestring(xmin, ymin, xmax, ymax, offset, distance_between_flight_lines)
-
-    #Find intersection flightlines with polygon
-    intersection = multi_line_string_flightdirection.intersection(sh_poly_negative_rotation)
-    
-    # Rotate intersection linestrings back around the same point
-    sh_multi_rotated_back = sh.affinity.rotate(intersection, angle, origin=(xmin_no_rotation,ymin_no_rotation))
-
-    # Save flight lines in geojson dict
-    overlapping_lines = sh_multi_rotated_back
-
-
-    # Save all points of the flightplan in flight order and make this a linestring.
-    sh_linestrings = list(sh_multi_rotated_back.geoms)
-    points_list = []
-    for i in range(len(sh_linestrings)):
-        line_coords = np.array(sh_linestrings[i].coords,dtype=object)
-        if i % 2 == 0: #check for even number of linestring
-            points_list.append(line_coords[0])
-            points_list.append(line_coords[1])
-        else:
-            points_list.append(line_coords[1])
-            points_list.append(line_coords[0])
-    
-    return points_list, overlapping_lines
 
 @app.callback(
     Output("waypoints","data"),
@@ -283,7 +237,7 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping):
     epsg_local = polygon_coords_dict['epsg']
     epsg_leaflet = 4326
     
-    points_coords, sh_overlapping_lines = flightcoordinates(xy_coords , angle, offset, buffer, 40)
+    points_coords, sh_overlapping_lines = fp.flightcoordinates(xy_coords , angle, offset, buffer, 40)
     
     array_flight_points_coords = np.asarray(points_coords)
 
@@ -343,7 +297,7 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping):
 
     return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer, string_damping
 
-
+# The callback and function below make sure the kmz data can be downloaded.
 @app.callback(
     Output("download_kml", "data"),
     Output("kml_clicks", "data"),
