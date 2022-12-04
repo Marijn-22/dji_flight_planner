@@ -94,7 +94,17 @@ body_controls2 = dbc.Card(
         html.Div([
             dcc.Slider(id="damping_slider", min=0.2, max=50, step=0.1, value=0.2)
         ]),
+
+        html.Div('Distance flight lines: 40 meter(s)', id = 'flight_lines_dist_text'),
+        html.Div([
+            dcc.Slider(id="flight_lines_dist_slider", min=0, max=100, step=0.5, value=40)
+        ]),
         
+        html.Div('Global height: 50 meter(s)', id = 'global_height_text'),
+        html.Div([
+            dcc.Slider(id="global_height_slider", min=0, max=120, step=0.1, value=50)
+        ]),
+
         html.Div([
             dbc.Button('Download KMZ', id='download_kml_btn', outline=True, color="success", n_clicks = 0)
         ]),
@@ -237,13 +247,17 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
     Output('offset_text','children'),
     Output('buffer_text','children'),
     Output('damping_text','children'),
+    Output('flight_lines_dist_text', 'children'),
+    Output('global_height_text', 'children'),
     Input('polygon_update', "data"),
     Input('angle_slider','value'),
     Input('offset_slider','value'),
     Input('buffer_slider','value'),
     Input('damping_slider','value'),
+    Input('flight_lines_dist_slider', 'value'),
+    Input('global_height_slider', 'value'),
 )
-def update_flightplan(polygon_coords_json, angle, offset, buffer, damping):
+def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, flight_lines_dist, global_height):
     # Make sure this function only executes when there is a polygon_coords_json file.
     if type(polygon_coords_json) == type(None):
         raise PreventUpdate
@@ -256,7 +270,7 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping):
     epsg_local = polygon_coords_dict['epsg']
     epsg_leaflet = 4326
     
-    points_coords, sh_overlapping_lines = fp.flightcoordinates(xy_coords , angle, offset, buffer, 40)
+    points_coords, sh_overlapping_lines = fp.flightcoordinates(xy_coords , angle, offset, buffer, flight_lines_dist)
     
     array_flight_points_coords = np.asarray(points_coords)
 
@@ -313,8 +327,10 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping):
     string_angle = f"Angle: {angle} degrees"
     string_buffer = f"Buffer: {buffer} meter(s)"
     string_damping = f"Damping: {damping} meter(s)"
+    string_flight_lines_distance = f"Distance flight lines: {flight_lines_dist} meter(s)"
+    string_global_height = f"Global height: {global_height} meter(s)"
 
-    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer, string_damping
+    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer, string_damping, string_flight_lines_distance, string_global_height
 
 # The callback and function below make sure the kmz data can be downloaded.
 @app.callback(
@@ -324,9 +340,10 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping):
     Input("download_kml_btn", "n_clicks"),
     Input('kml_clicks','data'),
     Input('damping_slider','value'),
+    Input('global_height_slider','value'),
     prevent_initial_call=True,
 )
-def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value):
+def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, global_height):
     kml_clicks = int(kml_clicks)
     if n_clicks == kml_clicks:
         raise PreventUpdate
@@ -372,7 +389,7 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value):
         points,             #point elements
         80,                 #takeOffSecurityHeight
         5,                  #autoFlightSpeed
-        80,                 #globalHeight
+        global_height,                 #globalHeight
         coordinateMode = 'WGS84',
         heightMode = 'relativeToStartPoint',
     )
