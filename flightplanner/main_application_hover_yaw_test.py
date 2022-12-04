@@ -97,7 +97,7 @@ body_controls2 = dbc.Card(
 
         html.Div('Distance flight lines: 40 meter(s)', id = 'flight_lines_dist_text'),
         html.Div([
-            dcc.Slider(id="flight_lines_dist_slider", min=0, max=120, step=0.5, value=40)
+            dcc.Slider(id="flight_lines_dist_slider", min=0, max=100, step=0.5, value=40)
         ]),
         
         html.Div('Global height: 50 meter(s)', id = 'global_height_text'),
@@ -395,8 +395,6 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, glo
             waypointTurnDampingDist = checked_waypointTurnDampingDist,
             gimbalPitchAngle = 0,
         )
-        # point.add_hover_action(5)
-        # point.add_yaw_action(-20)
 
         point_xml = point.build_waypoint_xml()
         points.append(point_xml)
