@@ -104,11 +104,30 @@ body_controls2 = dbc.Card(
 
 
 body_output_drawing = html.Div([
-        dl.Map(center=[56, 10], zoom=4, children=[
-            dl.TileLayer(),
+        dl.Map(
+            center=[56, 10],
+            zoom=4,
+            children = [
+            dl.LayersControl([
+                dl.BaseLayer(
+                    dl.TileLayer(),
+                    name="OpenStreetMaps",
+                    checked = True,
+                ),
+                dl.BaseLayer(
+                    dl.TileLayer(
+                        url="https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}",
+                        attribution="Google Satellite",                        
+                    ),
+                    name="Google Satellite",
+                    checked = False,
+                ),
+            ]),
             dl.FeatureGroup([dl.EditControl(id="edit_control", draw = edit_drawtoolbar)]),
-        ], style={'width': '100%', 'height': '87vh', 'margin': "auto", "display": "inline-block"},id="map"),
+        ],
+        style={'width': '100%', 'height': '87vh', 'margin': "auto", "display": "inline-block"},id="map"),
     ])
+
 
 body_output_flightplan = html.Div([
         dl.Map(center=[56, 10], zoom=4, children=[
