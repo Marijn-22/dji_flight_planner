@@ -9,6 +9,7 @@ import xml.etree.ElementTree as ET
 import shutil
 import os
 import tempfile
+import numpy as np
 
 from pyproj import Transformer
 
@@ -800,21 +801,46 @@ class dji_kmz():
 
             shutil.move(path_zip, file)
 
-def imu_callibration_j_turn(start_coordinate_in_meters, coordinate_system_start_coord, rotation, start_point_index, height):
+def imu_callibration_j_turn(start_coordinate_epsg_local, epsg_local, epsg_kml, rotation, start_point_index, height, max_speed = 10, length = 30, turn_radius = 5):
+    '''
+    angle = angle with north-south line
+    '''
+    transformer = Transformer.from_crs(epsg_local,
+                                        epsg_kml)
+    x = np.zeros(6)
+    y = np.zeros(6)
+    
+    x[0] = start_coordinate_epsg_local[0]
+    x[1] = start_coordinate_epsg_local[0] + (length/np.sin(rotation))
+    x[2] = start_coordinate_epsg_local[0]
+    x[3] = start_coordinate_epsg_local[0] + (length/np.sin(rotation))
+    x[4] = start_coordinate_epsg_local[0] + ((length+turn_radius)/np.sin(rotation))
+    x[5] = start_coordinate_epsg_local[0] + ((length+turn_radius)/np.sin(rotation))
 
+    y[0] = start_coordinate_epsg_local[0]
+    y[1] = start_coordinate_epsg_local[0] + (length/np.cos(rotation))
+    y[2] = start_coordinate_epsg_local[0]
+    y[3] = start_coordinate_epsg_local[0] + (length/np.cos(rotation))
+    y[4] = start_coordinate_epsg_local[0] + ((length+turn_radius)/np.cos(rotation))
+    y[5] = start_coordinate_epsg_local[0] + ((length+turn_radius)/np.cos(rotation))
+
+    # Transorm to kml crs
+    transformed_lat, transformed_lon = transformer.transform(x, y)
+    
     point0 = dji_waypoint_mission(
                 start_point_index, 
-                lon, 
-                lat, 
-                # height = global_height,
+                transformed_lon, 
+                transformed_lat, 
+                height = height,
                 useGlobalHeight = 1,
                 useGlobalSpeed = 1,
                 useGlobalTurnParam = 0,
                 waypointTurnMode = 'toPointAndStopWithDiscontinuityCurvature',
                 useStraightLine = 1,
-                waypointTurnDampingDist = checked_waypointTurnDampingDist,
+                # waypointTurnDampingDist = checked_waypointTurnDampingDist,
                 gimbalPitchAngle = 0,
             )
+
 
 
 if __name__ == '__main__':
