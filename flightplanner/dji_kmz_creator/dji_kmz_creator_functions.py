@@ -10,6 +10,8 @@ import shutil
 import os
 import tempfile
 
+from pyproj import Transformer
+
 def export_formated_xml(ET_xml: ET.Element, filename = 'test.xml'):
     ''' Export the input ET_xml parameter to a xml file. The name of the file 
     is given by the filename.'''
@@ -684,8 +686,8 @@ class dji_kmz():
 
     def build_kml(self):
         kml_xml = ET.Element('kml')
-        kml_xml.set('xmlns',"http://www.opengis.net/kml/2.2")
-        kml_xml.set('xmlns:wpml',"http://www.dji.com/wpmz/1.0.0")
+        kml_xml.set('xmlns', "http://www.opengis.net/kml/2.2")
+        kml_xml.set('xmlns:wpml', "http://www.dji.com/wpmz/1.0.0")
         document_xml = ET.SubElement(kml_xml, 'Document')
 
         # Add file creation information
@@ -797,6 +799,22 @@ class dji_kmz():
                 )
 
             shutil.move(path_zip, file)
+
+def imu_callibration_j_turn(start_coordinate_in_meters, coordinate_system_start_coord, rotation, start_point_index, height):
+
+    point0 = dji_waypoint_mission(
+                start_point_index, 
+                lon, 
+                lat, 
+                # height = global_height,
+                useGlobalHeight = 1,
+                useGlobalSpeed = 1,
+                useGlobalTurnParam = 0,
+                waypointTurnMode = 'toPointAndStopWithDiscontinuityCurvature',
+                useStraightLine = 1,
+                waypointTurnDampingDist = checked_waypointTurnDampingDist,
+                gimbalPitchAngle = 0,
+            )
 
 
 if __name__ == '__main__':
