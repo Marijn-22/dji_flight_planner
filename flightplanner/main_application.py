@@ -105,6 +105,11 @@ body_controls2 = dbc.Card(
             dcc.Slider(id="global_height_slider", min=0, max=120, step=0.1, value=50)
         ]),
 
+        html.Div('Auto flight ground speed: 5 m/s', id = 'autoflightspeed_text'),
+        html.Div([
+            dcc.Slider(id="autoflightspeed_slider", min=0, max=15, step=0.1, value=5)
+        ]),
+
         html.Div([
             dbc.Button('Download KMZ', id='download_kml_btn', outline=True, color="success", n_clicks = 0)
         ]),
@@ -263,6 +268,7 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
     Output('damping_text','children'),
     Output('flight_lines_dist_text', 'children'),
     Output('global_height_text', 'children'),
+    Output('autoflightspeed_text', 'children'),
     Input('polygon_update', "data"),
     Input('angle_slider','value'),
     Input('offset_slider','value'),
@@ -270,8 +276,9 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
     Input('damping_slider','value'),
     Input('flight_lines_dist_slider', 'value'),
     Input('global_height_slider', 'value'),
+    Input('autoflightspeed_slider','value'),
 )
-def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, flight_lines_dist, global_height):
+def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed):
     # Make sure this function only executes when there is a polygon_coords_json file.
     if type(polygon_coords_json) == type(None):
         raise PreventUpdate
@@ -343,8 +350,9 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     string_damping = f"Damping: {damping} meter(s)"
     string_flight_lines_distance = f"Distance flight lines: {flight_lines_dist} meter(s)"
     string_global_height = f"Global height: {global_height} meter(s)"
+    string_autoflightspeed = f"Auto flight ground speed: {autoflightspeed} m/s"
 
-    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer, string_damping, string_flight_lines_distance, string_global_height
+    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer, string_damping, string_flight_lines_distance, string_global_height, string_autoflightspeed
 
 # The callback and function below make sure the kmz data can be downloaded.
 @app.callback(
@@ -355,9 +363,10 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     Input('kml_clicks','data'),
     Input('damping_slider','value'),
     Input('global_height_slider','value'),
+    Input('autoflightspeed_slider','value'),
     prevent_initial_call=True,
 )
-def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, global_height):
+def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, global_height, autoflightspeed):
     kml_clicks = int(kml_clicks)
     if n_clicks == kml_clicks:
         raise PreventUpdate
@@ -404,7 +413,7 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, glo
     dji_mission = dji_kml.dji_kmz(
         points,             #point elements
         80,                 #takeOffSecurityHeight
-        5,                  #autoFlightSpeed
+        autoflightspeed,                  #autoFlightSpeed
         global_height,                 #globalHeight
         coordinateMode = 'WGS84',
         heightMode = 'relativeToStartPoint',
