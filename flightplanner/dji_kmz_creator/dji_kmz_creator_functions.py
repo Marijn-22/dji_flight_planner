@@ -10,6 +10,7 @@ import shutil
 import os
 import tempfile
 import numpy as np
+import copy
 
 from pyproj import Transformer
 
@@ -655,8 +656,17 @@ class dji_kmz():
         global_waypoint_heading_params = self.build_globalWaypointHeadingParam()  
         xml_template_list.append(global_waypoint_heading_params) 
 
+        # Remove wpml:executeHeight from waypoint.kml file
+        waypoints_elements_kml = []
+        elements = copy.deepcopy(self.waypoints_elements)#[:]
+        for element in elements:
+                wpml_executeHeight = element.find('wpml:executeHeight')
+                if wpml_executeHeight != None: 
+                    element.remove(wpml_executeHeight)
+                waypoints_elements_kml.append(element)
+
         # Add waypoints
-        waypoints_xml_template_list = xml_template_list + self.waypoints_elements
+        waypoints_xml_template_list = xml_template_list + waypoints_elements_kml
 
         return waypoints_xml_template_list 
 
@@ -753,8 +763,33 @@ class dji_kmz():
 
         # Add placemark information.
         if self.templateType == 'waypoint':
-            for element in self.waypoints_elements:
-                folder.append(element)
+            # Required to have different wayline and kml placemarks (self keeps these linked otherwise)
+            wayline_elements = copy.deepcopy(self.waypoints_elements)
+            for element in wayline_elements:
+                # # The following elements should not be in the waylines.wpml file
+                e = element
+                wpml_height = e.find('wpml:height')
+                wpml_Useglobalheight = e.find('wpml:useGlobalHeight')
+                wpml_Ellispoidheight = e.find('wpml:ellipsoidHeight')
+                wpml_Useglobalspeed = e.find('wpml:useGlobalSpeed')
+                wpml_UseGlobalHeading = e.find('wpml:useGlobalHeading')
+                wpml_useGlobalHeadingParam = e.find('wpml:useGlobalHeadingParam')
+                # The following is required to be able to run this function
+                # multiple times without producing errors.
+                if wpml_height != None: 
+                    e.remove(wpml_height)
+                if wpml_Useglobalheight != None: 
+                    e.remove(wpml_Useglobalheight)
+                if wpml_Ellispoidheight != None: 
+                    e.remove(wpml_Ellispoidheight)
+                if wpml_Useglobalspeed != None: 
+                    e.remove(wpml_Useglobalspeed)
+                if wpml_UseGlobalHeading != None: 
+                    e.remove(wpml_UseGlobalHeading)
+                if wpml_useGlobalHeadingParam != None: 
+                    e.remove(wpml_useGlobalHeadingParam)
+                # e.append(ET.Element('yo'))
+                folder.append(e)
 
         # wpml:startActionGroup was not added as the documentation was not 
         # clear about this parameter. And is not usable for the Matrice 300 RTK
@@ -867,6 +902,14 @@ if __name__ == '__main__':
     
     string_xml = return_string(point1_xml)
     print(string_xml)
+    
+    print('############### KML ####################')
+    string_xml = return_string(kml_element)
+    print(string_xml)
 
+
+    print('############### WAYLINES ####################')
+    string_xml = return_string(waylines_wpml_element)
+    print(string_xml)
 
     

@@ -2,8 +2,8 @@
 <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:wpml="http://www.dji.com/wpmz/1.0.0">
 	<Document>
 		<wpml:author>dji_kml_creator</wpml:author>
-		<wpml:createTime>1668761026864539</wpml:createTime>
-		<wpml:updateTime>1668761026864539</wpml:updateTime>
+		<wpml:createTime>1677169662418899</wpml:createTime>
+		<wpml:updateTime>1677169662418899</wpml:updateTime>
 		<wpml:missionConfig>
 			<wpml:flyToWaylineMode>safely</wpml:flyToWaylineMode>
 			<wpml:finishAction>goHome</wpml:finishAction>
@@ -27,7 +27,7 @@
 			<wpml:globalUseStraightLine>1</wpml:globalUseStraightLine>
 			<wpml:gimbalPitchMode>usePointSetting</wpml:gimbalPitchMode>
 			<wpml:ellipsoidHeight>0</wpml:ellipsoidHeight>
-			<wpml:height>80</wpml:height>
+			<wpml:globalHeight>80</wpml:globalHeight>
 			<wpml:globalWaypointHeadingParam>
 				<wpml:waypointHeadingMode>followWayline</wpml:waypointHeadingMode>
 				<wpml:waypointHeadingYawPathMode>followBadArc</wpml:waypointHeadingYawPathMode>
@@ -37,13 +37,7 @@
 					<coordinates>4.233, 52.0</coordinates>
 				</Point>
 				<wpml:index>10</wpml:index>
-				<wpml:useGlobalHeight>1</wpml:useGlobalHeight>
-				<wpml:ellipsoidHeight>100</wpml:ellipsoidHeight>
-				<wpml:height>100</wpml:height>
-				<wpml:executeHeight>100</wpml:executeHeight>
-				<wpml:useGlobalSpeed>1</wpml:useGlobalSpeed>
 				<wpml:waypointSpeed>1</wpml:waypointSpeed>
-				<wpml:useGlobalHeadingParam>1</wpml:useGlobalHeadingParam>
 				<wpml:waypointHeadingParam>
 					<wpml:waypointHeadingMode>followWayline</wpml:waypointHeadingMode>
 					<wpml:waypointHeadingYawPathMode>followBadArc</wpml:waypointHeadingYawPathMode>
@@ -85,13 +79,7 @@
 					<coordinates>4.233, 52.0</coordinates>
 				</Point>
 				<wpml:index>10</wpml:index>
-				<wpml:useGlobalHeight>1</wpml:useGlobalHeight>
-				<wpml:ellipsoidHeight>100</wpml:ellipsoidHeight>
-				<wpml:height>100</wpml:height>
-				<wpml:executeHeight>100</wpml:executeHeight>
-				<wpml:useGlobalSpeed>1</wpml:useGlobalSpeed>
 				<wpml:waypointSpeed>1</wpml:waypointSpeed>
-				<wpml:useGlobalHeadingParam>1</wpml:useGlobalHeadingParam>
 				<wpml:waypointHeadingParam>
 					<wpml:waypointHeadingMode>followWayline</wpml:waypointHeadingMode>
 					<wpml:waypointHeadingYawPathMode>followBadArc</wpml:waypointHeadingYawPathMode>

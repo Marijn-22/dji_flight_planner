@@ -22,13 +22,7 @@
 					<coordinates>4.233, 52.0</coordinates>
 				</Point>
 				<wpml:index>10</wpml:index>
-				<wpml:useGlobalHeight>1</wpml:useGlobalHeight>
-				<wpml:ellipsoidHeight>100</wpml:ellipsoidHeight>
-				<wpml:height>100</wpml:height>
-				<wpml:executeHeight>100</wpml:executeHeight>
-				<wpml:useGlobalSpeed>1</wpml:useGlobalSpeed>
 				<wpml:waypointSpeed>1</wpml:waypointSpeed>
-				<wpml:useGlobalHeadingParam>1</wpml:useGlobalHeadingParam>
 				<wpml:waypointHeadingParam>
 					<wpml:waypointHeadingMode>followWayline</wpml:waypointHeadingMode>
 					<wpml:waypointHeadingYawPathMode>followBadArc</wpml:waypointHeadingYawPathMode>
@@ -70,13 +64,7 @@
 					<coordinates>4.233, 52.0</coordinates>
 				</Point>
 				<wpml:index>10</wpml:index>
-				<wpml:useGlobalHeight>1</wpml:useGlobalHeight>
-				<wpml:ellipsoidHeight>100</wpml:ellipsoidHeight>
-				<wpml:height>100</wpml:height>
-				<wpml:executeHeight>100</wpml:executeHeight>
-				<wpml:useGlobalSpeed>1</wpml:useGlobalSpeed>
 				<wpml:waypointSpeed>1</wpml:waypointSpeed>
-				<wpml:useGlobalHeadingParam>1</wpml:useGlobalHeadingParam>
 				<wpml:waypointHeadingParam>
 					<wpml:waypointHeadingMode>followWayline</wpml:waypointHeadingMode>
 					<wpml:waypointHeadingYawPathMode>followBadArc</wpml:waypointHeadingYawPathMode>

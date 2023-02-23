@@ -403,6 +403,11 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, glo
             useStraightLine = 1,
             waypointTurnDampingDist = checked_waypointTurnDampingDist,
             gimbalPitchAngle = 0,
+            # Following added and makes the DJI app read the data better.
+            executeHeight = global_height,
+            waypointspeed = autoflightspeed,
+            ellipsoidHeight = global_height,
+            height = global_height,
         )
         # point.add_hover_action(5)
         # point.add_yaw_action(-20)
