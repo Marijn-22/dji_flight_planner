@@ -405,7 +405,7 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, glo
             gimbalPitchAngle = 0,
             # Following added and makes the DJI app read the data better.
             executeHeight = global_height,
-            waypointspeed = autoflightspeed,
+            waypointSpeed = autoflightspeed,
             ellipsoidHeight = global_height,
             height = global_height,
         )
