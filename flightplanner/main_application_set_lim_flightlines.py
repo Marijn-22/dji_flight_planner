@@ -142,7 +142,7 @@ body_controls2 = dbc.Card(
 
         html.Div('Auto flight ground speed: 5 m/s', id = 'autoflightspeed_text'),
         html.Div([
-            dcc.Slider(id="autoflightspeed_slider", marks=None, min=0, max=15, step=0.1, value=5)
+            dcc.Slider(id="autoflightspeed_slider", marks=None, min=0.1, max=15, step=0.1, value=5)
         ]),
 
         dbc.Collapse(
@@ -184,6 +184,10 @@ body_controls2 = dbc.Card(
             is_open = False,
         ),
 
+        html.Div('Estimated point density: ', id = 'estimated_density_text'),
+        html.Div('Estimated flight time: ', id = 'estimated_time_text'),
+        html.Div('Estimated total distance: ', id = 'estimated_total_distance_text'),
+        
         html.Div([
             dbc.Button('Download KMZ', id='download_kml_btn', outline=True, color="success", n_clicks = 0)
         ]),
@@ -352,6 +356,9 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
     Output('standard_mode_overlap_flightlines_text_visible', 'is_open'),
     Output('yellowscan_mode_dist_flightlines_text','children'), 
     Output('standard_mode_overlap_flightlines_text','children'),
+    Output('estimated_density_text', 'children'),
+    Output('estimated_time_text','children'),
+    Output('estimated_total_distance_text', 'children'),
     Input('polygon_update', "data"),
     Input('angle_slider','value'),
     Input('offset_slider','value'),
@@ -384,8 +391,11 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     epsg_local = polygon_coords_dict['epsg']
     epsg_leaflet = 4326
 
+    # Calculate estimated point density
+    density = fp.find_estimated_point_density(global_height, autoflightspeed, view_angle=70 * np.pi / 180, points_per_second = 240000)
+
     # Use the selected program mode
-    if mode == 1: # Use the custom mode
+    if mode == 1: # Use the standard mode
         points_coords, sh_overlapping_lines = fp.flightcoordinates(xy_coords , angle, offset, buffer, flight_lines_dist)
         visible_yellowscan_mode_flight_lines_overlap = False
         yellowscan_mode_dist_flightlines_visible = False
@@ -399,14 +409,15 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
         yellowscan_mode_dist_flightlines_visible = True
         visible_standard_mode_distance_flightlines = False
         standard_mode_overlap_flightlines_text_visible = False
+
     else:
         raise ValueError(f'Selected mode should be 0 or 1 but is {mode}')
-    # Find additional_coords
 
+    # Estimate mission duration and distance
+    est_time_min, est_dist_m = fp.find_estimated_mission_duration_and_distance(points_coords, autoflightspeed)
 
+    # Save point coordinates in a different format
     array_flight_points_coords = np.asarray(points_coords)
-
-
     points_coords_x = array_flight_points_coords[:,0]
     points_coords_y = array_flight_points_coords[:,1]
 
@@ -463,10 +474,11 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     string_global_height = f"Global height: {global_height} meter(s)"
     string_autoflightspeed = f"Auto flight ground speed: {autoflightspeed} m/s"
     string_overlap = f"Flight lines overlap: {overlap}"
-    string_estimated_density = r"Estimated point density: {} points/$m^2$".format(density)
+    string_estimated_density = r"Estimated density: {} points/".format(density) + r"m^2"
+    string_estimated_time = f"Estimated flight time: {est_time_min} min"
+    string_estimated_dist = f"Estimated distance: {est_dist_m} m"
 
-
-    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer, string_damping, string_flight_lines_distance, string_global_height, string_autoflightspeed, string_overlap, flight_lines_dist, visible_yellowscan_mode_flight_lines_overlap, yellowscan_mode_dist_flightlines_visible, visible_standard_mode_distance_flightlines, standard_mode_overlap_flightlines_text_visible, string_flight_lines_distance, string_overlap
+    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer, string_damping, string_flight_lines_distance, string_global_height, string_autoflightspeed, string_overlap, flight_lines_dist, visible_yellowscan_mode_flight_lines_overlap, yellowscan_mode_dist_flightlines_visible, visible_standard_mode_distance_flightlines, standard_mode_overlap_flightlines_text_visible, string_flight_lines_distance, string_overlap, string_estimated_density, string_estimated_time, string_estimated_dist
 
 # The callback and function below make sure the kmz data can be downloaded.
 @app.callback(
@@ -478,9 +490,10 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     Input('damping_slider','value'),
     Input('global_height_slider','value'),
     Input('autoflightspeed_slider','value'),
+    Input('yellowscan_mode_overlap_slider', 'value'),
     prevent_initial_call=True,
 )
-def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, global_height, autoflightspeed):
+def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, global_height, autoflightspeed, overlap):
     kml_clicks = int(kml_clicks)
     if n_clicks == kml_clicks:
         raise PreventUpdate
@@ -538,6 +551,14 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, glo
         heightMode = 'relativeToStartPoint',
     )
 
+    # Make a descriptive name
+    # v stands for the integer speed in m/s
+    v = str(int(autoflightspeed))
+    # h stands for the height in m
+    h = str(int(global_height))
+    # o stands for the overlap in %
+    o = str(int(overlap*100))
+    save_filename = f"mission_v{v}_h{h}_o{o}.kmz"
 
     dji_mission.build_kmz('test.kmz')
 
@@ -545,23 +566,11 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, glo
 
     kmz_bytearray = bytes(fh.read())
 
-    kmz_dict_download = dcc.send_bytes(kmz_bytearray, 'finaly.kmz')
+    kmz_dict_download = dcc.send_bytes(kmz_bytearray, save_filename)
 
     return kmz_dict_download, str(n_clicks) #dict(content=python_string, filename="flightplan_new_method.kml")
 
-# Add as variable
-#   flight lines distance
-#
-# function
-#   plots waypoints
-#   plots flightlines
-# 
-# function
-#   add 
-#   
-# 
-# 
-# 
+
 
 
 if __name__ == '__main__':

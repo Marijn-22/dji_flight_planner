@@ -1,3 +1,6 @@
 from .flight_planning_functions import find_all_max_waypointTurnDampingDists
 from .flight_planning_functions import coordinated_turn_corners
 from .flight_planning_functions import flightcoordinates
+from .flight_planning_functions import find_distance_flightlines
+from .flight_planning_functions import find_estimated_point_density
+from .flight_planning_functions import find_estimated_mission_duration_and_distance

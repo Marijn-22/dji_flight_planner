@@ -71,45 +71,64 @@ def flightcoordinates(polygon_coords: np.array, angle: float, offset: float, buf
     
     return points_list, overlapping_lines
 
-def flightcoordinates_only_test(polygon_coords: np.array, angle: float, offset: float, buffer: float, distance_between_flight_lines: float, max_flight_distance: float):
-    ''' This function calculates the waypoints that are required to survay the whole polygon that is given as input. '''
-    # Only yet used for lim flightlines
-
-    # Add buffer to the drawn polygon
-    sh_poly = Polygon(polygon_coords).buffer(buffer)
-    xmin_no_rotation, ymin_no_rotation, xmax_no_rotation, ymax_no_rotation = sh_poly.bounds
-
-    # Rotate the polygon to be able to make rotated flightlines
-    sh_poly_negative_rotation = sh.affinity.rotate(sh_poly, -angle, origin=(xmin_no_rotation,ymin_no_rotation))
+def find_distance_flightlines(overlap: float, flying_height: float, view_angle: float = 70*np.pi/180):
+    ''' 
+    Function calculates the distance between flightlines basd on the required overlap, flying height and
+    viewing angle.
     
-    sh_poly_negative_rotation_bounds = sh_poly_negative_rotation.bounds
-    xmin, ymin, xmax, ymax = sh_poly_negative_rotation_bounds
+    Args:
+        overlap: Float between 0 and 1.
+        flying_height: Float in meters.
+        view_angle: Complete view angle of the instrument in radials.
+        
+    Returns:
+        (float): Distance flightlines in meters, with 2 decimals.'''
     
-    #Make linestrings vertical to be used as flightlines
-    multi_line_string_flightdirection = make_multi_linestring(xmin, ymin, xmax, ymax, offset, distance_between_flight_lines)
+    swath_width = 2*np.tan(view_angle/2)*flying_height
+    distance_flightlines = swath_width * (1-overlap)
+    return np.round(distance_flightlines,2)
 
-    #Find intersection flightlines with polygon
-    intersection = multi_line_string_flightdirection.intersection(sh_poly_negative_rotation)
+def find_estimated_point_density(flying_height: float, ground_speed: float, view_angle: float = 70*np.pi/180, points_per_second: float = 240000):
+    '''
+    Function estimates the point density of the LiDAR acquisition. It is calculated for a single
+    flightline, estimates uniform distribution and only single returns.
     
-    # Rotate intersection linestrings back around the same point
-    sh_multi_rotated_back = sh.affinity.rotate(intersection, angle, origin=(xmin_no_rotation,ymin_no_rotation))
+    Args:
+        flying_height: Float in meters.
+        ground_speed: Ground speed in meters/second.
+        view_angle: Complete view angle of the instrument in radials.
+        Points per second: Amount of points per second the LiDAR scans (single return).
 
-    # Save flight lines in geojson dict
-    overlapping_lines = sh_multi_rotated_back
+    Returns:
+        (float): Estimated point density [points/m2] rounded to integer.
+    '''
+    swath_width = 2*np.tan(view_angle/2)*flying_height
+    covered_area_in_second = swath_width * ground_speed * 1
+    point_density = points_per_second/covered_area_in_second
+    return int(point_density)
 
-    # Save all points of the flightplan in flight order and make this a linestring.
-    sh_linestrings = list(sh_multi_rotated_back.geoms)
-    points_list = []
-    for i in range(len(sh_linestrings)):
-        line_coords = np.array(sh_linestrings[i].coords,dtype=object)
-        if i % 2 == 0: #check for even number of linestring
-            points_list.append(line_coords[0])
-            points_list.append(line_coords[1])
-        else:
-            points_list.append(line_coords[1])
-            points_list.append(line_coords[0])
+def find_estimated_mission_duration_and_distance(points_list: list, ground_speed: float):
+    ''' 
+    Function estimates the mission duration and total distance that is flown.
     
-    return points_list, overlapping_lines
+    Args:
+        point_list: Contains the coordinates of all the waypoints of the mission in a 
+            coordinate system in meters. This is the format that is given as output 
+            from the flightcoordinates() function. 
+        ground_speed: Ground speed in meters/second.
+        
+    Returns:
+        (float) Estimated duration in minutes, rounded to integer.
+        (float) Estimated distance in meters, rounded to integer.
+    '''
+    point_array = np.asarray(points_list)
+    distances_p2 = np.diff(point_array, axis = 0)**2
+    L2_distances = np.sum(distances_p2, axis = 1)**0.5
+    total_distance = np.sum(L2_distances)
+    total_time_s = total_distance/ground_speed
+    total_time_min = total_time_s/60
+    return int(total_time_min), int(total_distance)
+
 
 def find_all_max_waypointTurnDampingDists(points: np.array, max_setting: float | None = None):
     '''
