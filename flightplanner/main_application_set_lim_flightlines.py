@@ -92,9 +92,40 @@ body_controls_mode = dbc.Card(
     body = True
 )
 
+body_info = dbc.Card(
+    [
+        html.Div(html.H4('Flight info', id = 'title_estimated_parameters_text')),
+
+        dbc.Collapse(
+            dbc.Col([
+                html.Div('Distance between flight lines: ', id = 'yellowscan_mode_dist_flightlines_text'),
+            ],
+            align = 'center'
+            ),
+            id='yellowscan_mode_dist_flightlines_visible',
+            is_open = True,
+        ),
+
+        dbc.Collapse(
+            dbc.Col([
+                html.Div('Overlap flight lines: ', id = 'standard_mode_overlap_flightlines_text'),
+            ],
+            align = 'center'
+            ),
+            id='standard_mode_overlap_flightlines_text_visible',
+            is_open = False,
+        ),
+
+        html.Div('Estimated point density: ', id = 'estimated_density_text'),
+        html.Div('Estimated flight time: ', id = 'estimated_time_text'),
+        html.Div('Estimated total distance: ', id = 'estimated_total_distance_text'),
+    ], 
+    body = True
+)
+
 body_controls2 = dbc.Card(
     [
-        html.Div(html.H4("Plan your flight")
+        html.Div(html.H4("Flight parameters")
         ),
 
         html.Div('Angle: 0 deg', id = 'angle_text'),
@@ -116,11 +147,6 @@ body_controls2 = dbc.Card(
         html.Div([
             dcc.Slider(id="damping_slider", marks=None, min=0.2, max=50, step=0.1, value=0.2)
         ]),
-
-        # html.Div('Distance flight lines: 40 meter(s)', id = 'flight_lines_dist_text'),
-        # html.Div([
-        #     dcc.Slider(id="flight_lines_dist_slider", marks=None, min=0, max=120, step=0.5, value=40)
-        # ]),
 
         dbc.Collapse(
             dbc.Col([
@@ -157,37 +183,7 @@ body_controls2 = dbc.Card(
             id='yellow_scan_mode1',
             is_open = True, #standard true as the yellowscan mode is selected first standard.
         ),
-        
-        html.Div(html.H4('Estimated parameters', id = 'title_estimated_parameters_text')),
 
-        # html.Div('Flight lines overlap: 0.3 ', id = 'yellowscan_mode_overlap_text'),
-        # html.Div([
-        #     dcc.Slider(id="yellowscan_mode_overlap_slider", marks=None, min=0, max=0.99, step=0.1, value=0.3)
-        # ]),
-        dbc.Collapse(
-            dbc.Col([
-                html.Div('Distance between flight lines: ', id = 'yellowscan_mode_dist_flightlines_text'),
-            ],
-            align = 'center'
-            ),
-            id='yellowscan_mode_dist_flightlines_visible',
-            is_open = True,
-        ),
-
-        dbc.Collapse(
-            dbc.Col([
-                html.Div('Overlap flight lines: ', id = 'standard_mode_overlap_flightlines_text'),
-            ],
-            align = 'center'
-            ),
-            id='standard_mode_overlap_flightlines_text_visible',
-            is_open = False,
-        ),
-
-        html.Div('Estimated point density: ', id = 'estimated_density_text'),
-        html.Div('Estimated flight time: ', id = 'estimated_time_text'),
-        html.Div('Estimated total distance: ', id = 'estimated_total_distance_text'),
-        
         html.Div([
             dbc.Button('Download KMZ', id='download_kml_btn', outline=True, color="success", n_clicks = 0)
         ]),
@@ -264,7 +260,9 @@ app.layout = dbc.Container(
             dbc.Collapse(
                 dbc.Row([
                     dbc.Col([dbc.Row([body_controls_mode]),
-                             dbc.Row([body_controls2])], width = 2),
+                             dbc.Row([body_info]),
+                             dbc.Row([body_controls2]),
+                             ], width = 2),
                     dbc.Col(body_output_flightplan, width = 10),
                 ],
                 align = 'center'
