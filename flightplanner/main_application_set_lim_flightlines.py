@@ -81,7 +81,7 @@ body_controls_mode = dbc.Card(
                 {"label": "Yellowscan Mapper +", "value": 2},
             ],
             value=2,
-            id="radioitems-input",
+            id="input_mode",
         ),
         # html.Div('Angle: 0 deg', id = 'angle_text'),
         # html.Div([
@@ -99,38 +99,90 @@ body_controls2 = dbc.Card(
 
         html.Div('Angle: 0 deg', id = 'angle_text'),
         html.Div([
-            dcc.Slider(id="angle_slider", min=0, max=360, step=1, value=0)
+            dcc.Slider(id="angle_slider", marks=None, min=0, max=360, step=1, value=0)
         ]),
 
         html.Div('Offset: 0', id = 'offset_text'),
         html.Div([
-            dcc.Slider(id="offset_slider", min=0.001, max=0.5, step=0.001, value=0.5)
+            dcc.Slider(id="offset_slider", marks=None, min=0.001, max=0.5, step=0.001, value=0.5)
         ]),
 
         html.Div('Buffer: 0 meter(s)', id = 'buffer_text'),
         html.Div([
-            dcc.Slider(id="buffer_slider", min=0, max=20, step=0.1, value=5)
+            dcc.Slider(id="buffer_slider", marks=None, min=0, max=20, step=0.1, value=5)
         ]),
 
         html.Div('Damping: 0.2 meter(s)', id = 'damping_text'),
         html.Div([
-            dcc.Slider(id="damping_slider", min=0.2, max=50, step=0.1, value=0.2)
+            dcc.Slider(id="damping_slider", marks=None, min=0.2, max=50, step=0.1, value=0.2)
         ]),
 
-        html.Div('Distance flight lines: 40 meter(s)', id = 'flight_lines_dist_text'),
-        html.Div([
-            dcc.Slider(id="flight_lines_dist_slider", min=0, max=120, step=0.5, value=40)
-        ]),
+        # html.Div('Distance flight lines: 40 meter(s)', id = 'flight_lines_dist_text'),
+        # html.Div([
+        #     dcc.Slider(id="flight_lines_dist_slider", marks=None, min=0, max=120, step=0.5, value=40)
+        # ]),
+
+        dbc.Collapse(
+            dbc.Col([
+                html.Div('Distance flight lines: 40 meter(s)', id = 'flight_lines_dist_text'),
+            html.Div([
+                dcc.Slider(id="flight_lines_dist_slider", marks=None, min=0, max=120, step=0.5, value=40)
+                ]),
+            ],
+            align = 'center'
+            ),
+            id='standard_mode_dist',
+            is_open = False,
+        ),
         
         html.Div('Global height: 50 meter(s)', id = 'global_height_text'),
         html.Div([
-            dcc.Slider(id="global_height_slider", min=0, max=120, step=0.1, value=50)
+            dcc.Slider(id="global_height_slider", marks=None, min=0, max=120, step=0.1, value=50)
         ]),
 
         html.Div('Auto flight ground speed: 5 m/s', id = 'autoflightspeed_text'),
         html.Div([
-            dcc.Slider(id="autoflightspeed_slider", min=0, max=15, step=0.1, value=5)
+            dcc.Slider(id="autoflightspeed_slider", marks=None, min=0, max=15, step=0.1, value=5)
         ]),
+
+        dbc.Collapse(
+            dbc.Col([
+                html.Div('Flight lines overlap: 0.3 ', id = 'overlap_text'),
+                html.Div([
+                    dcc.Slider(id="yellowscan_mode_overlap_slider", marks=None, min=0, max=0.99, step=0.1, value=0.3)
+                ]),
+            ],
+            align = 'center'
+            ),
+            id='yellow_scan_mode1',
+            is_open = True, #standard true as the yellowscan mode is selected first standard.
+        ),
+        
+        html.Div(html.H4('Estimated parameters', id = 'title_estimated_parameters_text')),
+
+        # html.Div('Flight lines overlap: 0.3 ', id = 'yellowscan_mode_overlap_text'),
+        # html.Div([
+        #     dcc.Slider(id="yellowscan_mode_overlap_slider", marks=None, min=0, max=0.99, step=0.1, value=0.3)
+        # ]),
+        dbc.Collapse(
+            dbc.Col([
+                html.Div('Distance between flight lines: ', id = 'yellowscan_mode_dist_flightlines_text'),
+            ],
+            align = 'center'
+            ),
+            id='yellowscan_mode_dist_flightlines_visible',
+            is_open = True,
+        ),
+
+        dbc.Collapse(
+            dbc.Col([
+                html.Div('Overlap flight lines: ', id = 'standard_mode_overlap_flightlines_text'),
+            ],
+            align = 'center'
+            ),
+            id='standard_mode_overlap_flightlines_text_visible',
+            is_open = False,
+        ),
 
         html.Div([
             dbc.Button('Download KMZ', id='download_kml_btn', outline=True, color="success", n_clicks = 0)
@@ -292,6 +344,14 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
     Output('flight_lines_dist_text', 'children'),
     Output('global_height_text', 'children'),
     Output('autoflightspeed_text', 'children'),
+    Output('overlap_text', 'children'),
+    Output('flight_lines_dist_slider', 'value'),
+    Output('yellow_scan_mode1', 'is_open'), # if flightlines overlap slider should be displayed.
+    Output('yellowscan_mode_dist_flightlines_visible', 'is_open'),
+    Output('standard_mode_dist', 'is_open'), # if flight lines distance slider should be displayed.
+    Output('standard_mode_overlap_flightlines_text_visible', 'is_open'),
+    Output('yellowscan_mode_dist_flightlines_text','children'), 
+    Output('standard_mode_overlap_flightlines_text','children'),
     Input('polygon_update', "data"),
     Input('angle_slider','value'),
     Input('offset_slider','value'),
@@ -300,8 +360,18 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
     Input('flight_lines_dist_slider', 'value'),
     Input('global_height_slider', 'value'),
     Input('autoflightspeed_slider','value'),
+    # Extra added
+    Input('input_mode','value'),
+    Input('yellowscan_mode_overlap_slider', 'value'),
 )
-def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed):
+def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed, mode: int, overlap: float):
+    ''''
+    This function updates the flightplan based on the callback variables that can be seen above.
+
+    Args:
+        mode: Determines the mode of the program. Now supported are custom (value 1) and yellowscan mapper plus (value 2). 
+        overlap: The overlap the flightlines should have. This is a value between 0 and 1.
+    '''
     # Make sure this function only executes when there is a polygon_coords_json file.
     if type(polygon_coords_json) == type(None):
         raise PreventUpdate
@@ -313,9 +383,24 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     # Set epsg codes
     epsg_local = polygon_coords_dict['epsg']
     epsg_leaflet = 4326
-    
-    points_coords, sh_overlapping_lines = fp.flightcoordinates(xy_coords , angle, offset, buffer, flight_lines_dist)
-    
+
+    # Use the selected program mode
+    if mode == 1: # Use the custom mode
+        points_coords, sh_overlapping_lines = fp.flightcoordinates(xy_coords , angle, offset, buffer, flight_lines_dist)
+        visible_yellowscan_mode_flight_lines_overlap = False
+        yellowscan_mode_dist_flightlines_visible = False
+        visible_standard_mode_distance_flightlines = True
+        standard_mode_overlap_flightlines_text_visible = True
+
+    elif mode == 2: # Use the Yellowscan Mapper plus mode
+        flight_lines_dist = fp.find_distance_flightlines(overlap, global_height, view_angle = 70*np.pi/180)
+        points_coords, sh_overlapping_lines = fp.flightcoordinates(xy_coords , angle, offset, buffer, flight_lines_dist)
+        visible_yellowscan_mode_flight_lines_overlap = True
+        yellowscan_mode_dist_flightlines_visible = True
+        visible_standard_mode_distance_flightlines = False
+        standard_mode_overlap_flightlines_text_visible = False
+    else:
+        raise ValueError(f'Selected mode should be 0 or 1 but is {mode}')
     # Find additional_coords
 
 
@@ -377,8 +462,11 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     string_flight_lines_distance = f"Distance flight lines: {flight_lines_dist} meter(s)"
     string_global_height = f"Global height: {global_height} meter(s)"
     string_autoflightspeed = f"Auto flight ground speed: {autoflightspeed} m/s"
+    string_overlap = f"Flight lines overlap: {overlap}"
+    string_estimated_density = r"Estimated point density: {} points/$m^2$".format(density)
 
-    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer, string_damping, string_flight_lines_distance, string_global_height, string_autoflightspeed
+
+    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer, string_damping, string_flight_lines_distance, string_global_height, string_autoflightspeed, string_overlap, flight_lines_dist, visible_yellowscan_mode_flight_lines_overlap, yellowscan_mode_dist_flightlines_visible, visible_standard_mode_distance_flightlines, standard_mode_overlap_flightlines_text_visible, string_flight_lines_distance, string_overlap
 
 # The callback and function below make sure the kmz data can be downloaded.
 @app.callback(
