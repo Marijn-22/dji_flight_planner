@@ -123,37 +123,74 @@ body_info = dbc.Card(
     body = True
 )
 
+
 body_controls2 = dbc.Card(
     [
         html.Div(html.H4("Flight parameters")
         ),
 
-        html.Div('Angle: 0 deg', id = 'angle_text'),
+        dbc.Row([
+            dbc.Col(html.Div('Angle [deg]:', id = 'angle_text'),),
+            dbc.Col(
+                dbc.Input(
+                    id="input_circ_angle", type="number", min=0, max=360, value=0, step=0.1, size =2,
+                ),
+            ),
+        ]),
         html.Div([
-            dcc.Slider(id="angle_slider", marks=None, min=0, max=360, step=1, value=0)
+            dcc.Slider(id="angle_slider", marks=None, min=0, max=360, step=0.1, value=0, tooltip={"placement": "bottom"})
         ]),
 
-        html.Div('Offset: 0', id = 'offset_text'),
+        
+        dbc.Row([
+            dbc.Col(html.Div('Offset:', id = 'offset_text'),),
+            dbc.Col(
+                dbc.Input(
+                    id="input_circ_offset", type="number", min=0.001, max=0.5, step=0.001, value=0.5,
+                ),
+            ),
+        ]),
         html.Div([
-            dcc.Slider(id="offset_slider", marks=None, min=0.001, max=0.5, step=0.001, value=0.5)
+            dcc.Slider(id="offset_slider", marks=None, min=0.001, max=0.5, step=0.001, value=0.5, tooltip={"placement": "bottom"})
         ]),
 
-        html.Div('Buffer: 0 meter(s)', id = 'buffer_text'),
+        dbc.Row([
+            dbc.Col(html.Div('Buffer [m]:', id = 'buffer_text')),
+            dbc.Col(
+                dbc.Input(
+                    id="input_circ_buffer", type="number", min=0, max=20, step=0.1, value=5,
+                ),
+            ),
+        ]),
         html.Div([
-            dcc.Slider(id="buffer_slider", marks=None, min=0, max=20, step=0.1, value=5)
+            dcc.Slider(id="buffer_slider", marks=None, min=0, max=20, step=0.1, value=5, tooltip={"placement": "bottom"})
         ]),
 
-        html.Div('Damping: 0.2 meter(s)', id = 'damping_text'),
+        dbc.Row([
+            dbc.Col(html.Div('Damping [m]:', id = 'damping_text')),
+            dbc.Col(
+                dbc.Input(
+                    id="input_circ_damping", type="number", min=0.2, max=50, step=0.1, value=20,
+                ),
+            ),
+        ]),
         html.Div([
-            dcc.Slider(id="damping_slider", marks=None, min=0.2, max=50, step=0.1, value=0.2)
+            dcc.Slider(id="damping_slider", marks=None, min=0.2, max=50, step=0.1, value=20, tooltip={"placement": "bottom"})
         ]),
 
         dbc.Collapse(
             dbc.Col([
-                html.Div('Distance flight lines: 40 meter(s)', id = 'flight_lines_dist_text'),
-            html.Div([
-                dcc.Slider(id="flight_lines_dist_slider", marks=None, min=0, max=120, step=0.5, value=40)
+                dbc.Row([
+                    dbc.Col(html.Div('Distance flight lines [m]:', id = 'flight_lines_dist_text')),
+                    dbc.Col(
+                        dbc.Input(
+                            id="input_circ_dist_lines", type="number", min=0, max=120, step=0.5, value=40,
+                        ),
+                    ),
                 ]),
+                html.Div([
+                    dcc.Slider(id="flight_lines_dist_slider", marks=None, min=0, max=120, step=0.01, value=40, tooltip={"placement": "bottom"})
+                    ]),
             ],
             align = 'center'
             ),
@@ -161,21 +198,44 @@ body_controls2 = dbc.Card(
             is_open = False,
         ),
         
-        html.Div('Global height: 50 meter(s)', id = 'global_height_text'),
+
+        dbc.Row([
+            dbc.Col(html.Div('Height [m]:', id = 'global_height_text')),
+            dbc.Col(
+                dbc.Input(
+                    id="input_circ_gl_height", type="number", min=0, max=120, step=0.1, value=50,
+                ),
+            ),
+        ]),
         html.Div([
-            dcc.Slider(id="global_height_slider", marks=None, min=0, max=120, step=0.1, value=50)
+            dcc.Slider(id="global_height_slider", marks=None, min=0, max=120, step=0.1, value=50, tooltip={"placement": "bottom"})
         ]),
 
-        html.Div('Auto flight ground speed: 5 m/s', id = 'autoflightspeed_text'),
+
+        dbc.Row([
+            dbc.Col(html.Div('Speed [m/s]', id = 'autoflightspeed_text')),
+            dbc.Col(
+                dbc.Input(
+                    id="input_circ_speed", type="number", min=0.1, max=15, step=0.1, value=5,
+                ),
+            ),
+        ]),
         html.Div([
-            dcc.Slider(id="autoflightspeed_slider", marks=None, min=0.1, max=15, step=0.1, value=5)
+            dcc.Slider(id="autoflightspeed_slider", marks=None, min=0.1, max=15, step=0.1, value=5, tooltip={"placement": "bottom"})
         ]),
 
         dbc.Collapse(
             dbc.Col([
-                html.Div('Flight lines overlap: 0.3 ', id = 'overlap_text'),
+                dbc.Row([
+                    dbc.Col(html.Div('Overlap: ', id = 'overlap_text')),
+                    dbc.Col(
+                        dbc.Input(
+                            id="input_circ_overlap", type="number", min=0, max=0.99, step=0.1, value=0.3,
+                        ),
+                    ),
+                ]),
                 html.Div([
-                    dcc.Slider(id="yellowscan_mode_overlap_slider", marks=None, min=0, max=0.99, step=0.1, value=0.3)
+                    dcc.Slider(id="yellowscan_mode_overlap_slider", marks=None, min=0, max=0.99, step=0.1, value=0.3, tooltip={"placement": "bottom"})
                 ]),
             ],
             align = 'center'
@@ -333,20 +393,31 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
 
     return transformed_coords
 
+# @app.callback(
+#     Output("input_circ_angle", "value"),
+#     Output("angle_slider", "value"),
+#     Input("input_circ_angle",'value'),    
+#     Input('angle_slider','value'),
+# )
+# def callback(input_value, slider_value):
+#     ctx = dash.callback_context
+#     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+#     value = input_value if trigger_id == "input-circular" else slider_value
+#     return value, value
 
 
 @app.callback(
     Output("waypoints","data"),
     Output("flight_lines","data"),
     Output("waypoints_multipoint","data"),
-    Output('angle_text','children'),
-    Output('offset_text','children'),
-    Output('buffer_text','children'),
-    Output('damping_text','children'),
-    Output('flight_lines_dist_text', 'children'),
-    Output('global_height_text', 'children'),
-    Output('autoflightspeed_text', 'children'),
-    Output('overlap_text', 'children'),
+    # Output('angle_text','children'),
+    # Output('offset_text','children'),
+    # Output('buffer_text','children'),
+    # Output('damping_text','children'),
+    # Output('flight_lines_dist_text', 'children'),
+    # Output('global_height_text', 'children'),
+    # Output('autoflightspeed_text', 'children'),
+    # Output('overlap_text', 'children'),
     Output('flight_lines_dist_slider', 'value'),
     Output('yellow_scan_mode1', 'is_open'), # if flightlines overlap slider should be displayed.
     Output('yellowscan_mode_dist_flightlines_visible', 'is_open'),
@@ -357,6 +428,14 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
     Output('estimated_density_text', 'children'),
     Output('estimated_time_text','children'),
     Output('estimated_total_distance_text', 'children'),
+    Output("input_circ_angle",'value'),
+    Output("input_circ_offset",'value'),
+    Output("input_circ_buffer",'value'),
+    Output("input_circ_damping",'value'),
+    Output("input_circ_dist_lines",'value'),
+    Output("input_circ_gl_height",'value'),
+    Output("input_circ_speed",'value'),
+    Output("input_circ_overlap",'value'),
     Input('polygon_update', "data"),
     Input('angle_slider','value'),
     Input('offset_slider','value'),
@@ -368,8 +447,16 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
     # Extra added
     Input('input_mode','value'),
     Input('yellowscan_mode_overlap_slider', 'value'),
+    Input("input_circ_angle",'value'),
+    Input("input_circ_offset",'value'),
+    Input("input_circ_buffer",'value'),
+    Input("input_circ_damping",'value'),
+    Input("input_circ_dist_lines",'value'),
+    Input("input_circ_gl_height",'value'),
+    Input("input_circ_speed",'value'),
+    Input("input_circ_overlap",'value'),
 )
-def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed, mode: int, overlap: float):
+def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed, mode: int, overlap: float, in_circ_angle, in_circ_offset, in_circ_buffer, in_circ_damping, in_circ_flight_lines_dist, in_circ_height, in_circ_speed, in_circ_overlap):
     ''''
     This function updates the flightplan based on the callback variables that can be seen above.
 
@@ -380,6 +467,18 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     # Make sure this function only executes when there is a polygon_coords_json file.
     if type(polygon_coords_json) == type(None):
         raise PreventUpdate
+    
+    # Required to make circular callbacks (combination slider and number input)
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    angle = in_circ_angle if trigger_id == "input_circ_angle" else angle
+    offset = in_circ_offset if trigger_id == "input_circ_offset" else offset
+    buffer = in_circ_buffer if trigger_id == "input_circ_buffer" else buffer
+    damping = in_circ_damping if trigger_id == "input_circ_damping" else damping
+    flight_lines_dist = in_circ_flight_lines_dist if trigger_id == "input_circ_dist_lines" else flight_lines_dist
+    global_height = in_circ_height if trigger_id == "input_circ_gl_height" else global_height
+    autoflightspeed = in_circ_speed if trigger_id == "input_circ_speed" else autoflightspeed
+    overlap = in_circ_overlap if trigger_id == "input_circ_overlap" else overlap
 
     # Load coordinates in numpy array
     polygon_coords_dict = json.loads(polygon_coords_json)
@@ -476,7 +575,8 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     string_estimated_time = f"Estimated flight time: {est_time_min} min"
     string_estimated_dist = f"Estimated distance: {est_dist_m} m"
 
-    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer, string_damping, string_flight_lines_distance, string_global_height, string_autoflightspeed, string_overlap, flight_lines_dist, visible_yellowscan_mode_flight_lines_overlap, yellowscan_mode_dist_flightlines_visible, visible_standard_mode_distance_flightlines, standard_mode_overlap_flightlines_text_visible, string_flight_lines_distance, string_overlap, string_estimated_density, string_estimated_time, string_estimated_dist
+    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, flight_lines_dist, visible_yellowscan_mode_flight_lines_overlap, yellowscan_mode_dist_flightlines_visible, visible_standard_mode_distance_flightlines, standard_mode_overlap_flightlines_text_visible, string_flight_lines_distance, string_overlap, string_estimated_density, string_estimated_time, string_estimated_dist, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed, overlap
+  #, string_angle, string_offset, string_buffer, string_damping, string_flight_lines_distance, string_global_height, string_autoflightspeed, string_overlap
 
 # The callback and function below make sure the kmz data can be downloaded.
 @app.callback(
