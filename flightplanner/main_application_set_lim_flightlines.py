@@ -418,7 +418,16 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
     # Output('global_height_text', 'children'),
     # Output('autoflightspeed_text', 'children'),
     # Output('overlap_text', 'children'),
+    # Output('flight_lines_dist_slider', 'value'),
+    Output('angle_slider','value'),
+    Output('offset_slider','value'),
+    Output('buffer_slider','value'),
+    Output('damping_slider','value'),
     Output('flight_lines_dist_slider', 'value'),
+    Output('global_height_slider', 'value'),
+    Output('autoflightspeed_slider','value'),
+    Output('yellowscan_mode_overlap_slider','value'),
+# angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed, overlap
     Output('yellow_scan_mode1', 'is_open'), # if flightlines overlap slider should be displayed.
     Output('yellowscan_mode_dist_flightlines_visible', 'is_open'),
     Output('standard_mode_dist', 'is_open'), # if flight lines distance slider should be displayed.
@@ -444,6 +453,7 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
     Input('flight_lines_dist_slider', 'value'),
     Input('global_height_slider', 'value'),
     Input('autoflightspeed_slider','value'),
+    # Input('yellowscan_mode_overlap_slider','value')
     # Extra added
     Input('input_mode','value'),
     Input('yellowscan_mode_overlap_slider', 'value'),
@@ -575,7 +585,7 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     string_estimated_time = f"Estimated flight time: {est_time_min} min"
     string_estimated_dist = f"Estimated distance: {est_dist_m} m"
 
-    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, flight_lines_dist, visible_yellowscan_mode_flight_lines_overlap, yellowscan_mode_dist_flightlines_visible, visible_standard_mode_distance_flightlines, standard_mode_overlap_flightlines_text_visible, string_flight_lines_distance, string_overlap, string_estimated_density, string_estimated_time, string_estimated_dist, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed, overlap
+    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed, overlap, visible_yellowscan_mode_flight_lines_overlap, yellowscan_mode_dist_flightlines_visible, visible_standard_mode_distance_flightlines, standard_mode_overlap_flightlines_text_visible, string_flight_lines_distance, string_overlap, string_estimated_density, string_estimated_time, string_estimated_dist, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed, overlap
   #, string_angle, string_offset, string_buffer, string_damping, string_flight_lines_distance, string_global_height, string_autoflightspeed, string_overlap
 
 # The callback and function below make sure the kmz data can be downloaded.
