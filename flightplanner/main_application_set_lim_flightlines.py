@@ -358,6 +358,17 @@ app.layout = dbc.Container(
 def hide_drawing_options(n_clicks, geojson, saved_polygon):
     if type(saved_polygon) != type(None):
         raise PreventUpdate
+    
+    # On initial loading of the page the Leaflet map objects should be fully loaded
+    # Otherwise an error occurs that can be found here:
+    # https://github.com/thedirtyfew/dash-leaflet/issues/73
+    # Therefore a short sleep is implemented to work around this problem. Without
+    # this part the webpage could also be reloaded after opening the second map 
+    # object. The second time it will work. This amount could maybe depend on the
+    # machine you are working on. So then the sleep might be needed to be set higher.
+    if n_clicks ==0:
+        time.sleep(0.1)
+    
     output1 = True
     output2 = False
     if n_clicks == 1:
