@@ -244,6 +244,11 @@ body_controls2 = dbc.Card(
             is_open = True, #standard true as the yellowscan mode is selected first standard.
         ),
 
+        dbc.Col(html.Div('Base filename:', id = 'base_filename_text')),
+        dbc.Input(
+            id="input_filename", type="text", value='mission',
+        ),
+
         html.Div([
             dbc.Button('Download KMZ', id='download_kml_btn', outline=True, color="success", n_clicks = 0)
         ]),
@@ -564,9 +569,10 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     Input('global_height_slider','value'),
     Input('autoflightspeed_slider','value'),
     Input('yellowscan_mode_overlap_slider', 'value'),
+    Input('input_filename',"value"),
     prevent_initial_call=True,
 )
-def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, global_height, autoflightspeed, overlap):
+def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, global_height, autoflightspeed, overlap, base_filename):
     kml_clicks = int(kml_clicks)
     if n_clicks == kml_clicks:
         raise PreventUpdate
@@ -631,7 +637,7 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, glo
     h = str(int(global_height))
     # o stands for the overlap in %
     o = str(int(overlap*100))
-    save_filename = f"mission_v{v}_h{h}_o{o}.kmz"
+    save_filename = f"{base_filename}_v{v}_h{h}_o{o}.kmz"
 
     dji_mission.build_kmz('test.kmz')
 
