@@ -70,45 +70,184 @@ body_controls1 = dbc.Card(
     body = True
 )
 
-body_controls2 = dbc.Card(
+
+body_controls_mode = dbc.Card(
     [
-        html.Div(html.H4("Plan your flight")
+        html.Div(html.H4("Set Mode")
+        ),
+        dbc.RadioItems(
+            options=[
+                {"label": "Standard", "value": 1},
+                {"label": "Yellowscan Mapper +", "value": 2},
+            ],
+            value=2,
+            id="input_mode",
+        ),
+        # html.Div('Angle: 0 deg', id = 'angle_text'),
+        # html.Div([
+        #     dcc.Slider(id="angle_slider", min=0, max=360, step=1, value=0)
+        # ]),
+
+    ], 
+    body = True
+)
+
+body_info = dbc.Card(
+    [
+        html.Div(html.H4('Flight info', id = 'title_estimated_parameters_text')),
+
+        dbc.Collapse(
+            dbc.Col([
+                html.Div('Distance between flight lines: ', id = 'yellowscan_mode_dist_flightlines_text'),
+            ],
+            align = 'center'
+            ),
+            id='yellowscan_mode_dist_flightlines_visible',
+            is_open = True,
         ),
 
-        html.Div('Angle: 0 deg', id = 'angle_text'),
+        dbc.Collapse(
+            dbc.Col([
+                html.Div('Overlap flight lines: ', id = 'standard_mode_overlap_flightlines_text'),
+            ],
+            align = 'center'
+            ),
+            id='standard_mode_overlap_flightlines_text_visible',
+            is_open = False,
+        ),
+
+        html.Div('Estimated point density: ', id = 'estimated_density_text'),
+        html.Div('Estimated flight time: ', id = 'estimated_time_text'),
+        html.Div('Estimated total distance: ', id = 'estimated_total_distance_text'),
+    ], 
+    body = True
+)
+
+
+body_controls2 = dbc.Card(
+    [
+        html.Div(html.H4("Flight parameters")
+        ),
+
+        dbc.Row([
+            dbc.Col(html.Div('Angle [deg]:', id = 'angle_text'),),
+            dbc.Col(
+                dbc.Input(
+                    id="input_circ_angle", type="number", min=0, max=360, value=0, step=0.1, size =2,
+                ),
+            ),
+        ]),
         html.Div([
-            dcc.Slider(id="angle_slider", min=0, max=360, step=1, value=0)
+            dcc.Slider(id="angle_slider", marks=None, min=0, max=360, step=0.1, value=0, tooltip={"placement": "bottom"})
         ]),
 
-        html.Div('Offset: 0', id = 'offset_text'),
-        html.Div([
-            dcc.Slider(id="offset_slider", min=0.001, max=0.5, step=0.001, value=0.5)
-        ]),
-
-        html.Div('Buffer: 0 meter(s)', id = 'buffer_text'),
-        html.Div([
-            dcc.Slider(id="buffer_slider", min=0, max=20, step=0.1, value=5)
-        ]),
-
-        html.Div('Damping: 0.2 meter(s)', id = 'damping_text'),
-        html.Div([
-            dcc.Slider(id="damping_slider", min=0.2, max=50, step=0.1, value=0.2)
-        ]),
-
-        html.Div('Distance flight lines: 40 meter(s)', id = 'flight_lines_dist_text'),
-        html.Div([
-            dcc.Slider(id="flight_lines_dist_slider", min=0, max=120, step=0.5, value=40)
-        ]),
         
-        html.Div('Global height: 50 meter(s)', id = 'global_height_text'),
+        dbc.Row([
+            dbc.Col(html.Div('Offset:', id = 'offset_text'),),
+            dbc.Col(
+                dbc.Input(
+                    id="input_circ_offset", type="number", min=0.001, max=0.5, step=0.001, value=0.5,
+                ),
+            ),
+        ]),
         html.Div([
-            dcc.Slider(id="global_height_slider", min=0, max=120, step=0.1, value=50)
+            dcc.Slider(id="offset_slider", marks=None, min=0.001, max=0.5, step=0.001, value=0.5, tooltip={"placement": "bottom"})
         ]),
 
-        html.Div('Auto flight ground speed: 5 m/s', id = 'autoflightspeed_text'),
-        html.Div([
-            dcc.Slider(id="autoflightspeed_slider", min=0, max=15, step=0.1, value=5)
+        dbc.Row([
+            dbc.Col(html.Div('Buffer [m]:', id = 'buffer_text')),
+            dbc.Col(
+                dbc.Input(
+                    id="input_circ_buffer", type="number", min=0, max=20, step=0.1, value=5,
+                ),
+            ),
         ]),
+        html.Div([
+            dcc.Slider(id="buffer_slider", marks=None, min=0, max=20, step=0.1, value=5, tooltip={"placement": "bottom"})
+        ]),
+
+        dbc.Row([
+            dbc.Col(html.Div('Damping [m]:', id = 'damping_text')),
+            dbc.Col(
+                dbc.Input(
+                    id="input_circ_damping", type="number", min=0.2, max=50, step=0.1, value=20,
+                ),
+            ),
+        ]),
+        html.Div([
+            dcc.Slider(id="damping_slider", marks=None, min=0.2, max=50, step=0.1, value=20, tooltip={"placement": "bottom"})
+        ]),
+
+        dbc.Collapse(
+            dbc.Col([
+                dbc.Row([
+                    dbc.Col(html.Div('Distance flight lines [m]:', id = 'flight_lines_dist_text')),
+                    dbc.Col(
+                        dbc.Input(
+                            id="input_circ_dist_lines", type="number", min=0, max=120, step=0.5, value=40,
+                        ),
+                    ),
+                ]),
+                html.Div([
+                    dcc.Slider(id="flight_lines_dist_slider", marks=None, min=0, max=120, step=0.01, value=40, tooltip={"placement": "bottom"})
+                    ]),
+            ],
+            align = 'center'
+            ),
+            id='standard_mode_dist',
+            is_open = False,
+        ),
+        
+
+        dbc.Row([
+            dbc.Col(html.Div('Height [m]:', id = 'global_height_text')),
+            dbc.Col(
+                dbc.Input(
+                    id="input_circ_gl_height", type="number", min=0, max=120, step=0.1, value=50,
+                ),
+            ),
+        ]),
+        html.Div([
+            dcc.Slider(id="global_height_slider", marks=None, min=0, max=120, step=0.1, value=50, tooltip={"placement": "bottom"})
+        ]),
+
+
+        dbc.Row([
+            dbc.Col(html.Div('Speed [m/s]', id = 'autoflightspeed_text')),
+            dbc.Col(
+                dbc.Input(
+                    id="input_circ_speed", type="number", min=0.1, max=15, step=0.1, value=5,
+                ),
+            ),
+        ]),
+        html.Div([
+            dcc.Slider(id="autoflightspeed_slider", marks=None, min=0.1, max=15, step=0.1, value=5, tooltip={"placement": "bottom"})
+        ]),
+
+        dbc.Collapse(
+            dbc.Col([
+                dbc.Row([
+                    dbc.Col(html.Div('Overlap: ', id = 'overlap_text')),
+                    dbc.Col(
+                        dbc.Input(
+                            id="input_circ_overlap", type="number", min=0, max=0.99, step=0.1, value=0.3,
+                        ),
+                    ),
+                ]),
+                html.Div([
+                    dcc.Slider(id="yellowscan_mode_overlap_slider", marks=None, min=0, max=0.99, step=0.1, value=0.3, tooltip={"placement": "bottom"})
+                ]),
+            ],
+            align = 'center'
+            ),
+            id='yellow_scan_mode1',
+            is_open = True, #standard true as the yellowscan mode is selected first standard.
+        ),
+
+        dbc.Col(html.Div('Base filename:', id = 'base_filename_text')),
+        dbc.Input(
+            id="input_filename", type="text", value='mission',
+        ),
 
         html.Div([
             dbc.Button('Download KMZ', id='download_kml_btn', outline=True, color="success", n_clicks = 0)
@@ -185,7 +324,10 @@ app.layout = dbc.Container(
             ),
             dbc.Collapse(
                 dbc.Row([
-                    dbc.Col(body_controls2, width = 2),
+                    dbc.Col([dbc.Row([body_controls_mode]),
+                             dbc.Row([body_info]),
+                             dbc.Row([body_controls2]),
+                             ], width = 2),
                     dbc.Col(body_output_flightplan, width = 10),
                 ],
                 align = 'center'
@@ -216,6 +358,17 @@ app.layout = dbc.Container(
 def hide_drawing_options(n_clicks, geojson, saved_polygon):
     if type(saved_polygon) != type(None):
         raise PreventUpdate
+    
+    # On initial loading of the page the Leaflet map objects should be fully loaded
+    # Otherwise an error occurs that can be found here:
+    # https://github.com/thedirtyfew/dash-leaflet/issues/73
+    # Therefore a short sleep is implemented to work around this problem. Without
+    # this part the webpage could also be reloaded after opening the second map 
+    # object. The second time it will work. This amount could maybe depend on the
+    # machine you are working on. So then the sleep might be needed to be set higher.
+    if n_clicks ==0:
+        time.sleep(0.1)
+    
     output1 = True
     output2 = False
     if n_clicks == 1:
@@ -257,18 +410,35 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
     return transformed_coords
 
 
-
 @app.callback(
     Output("waypoints","data"),
     Output("flight_lines","data"),
     Output("waypoints_multipoint","data"),
-    Output('angle_text','children'),
-    Output('offset_text','children'),
-    Output('buffer_text','children'),
-    Output('damping_text','children'),
-    Output('flight_lines_dist_text', 'children'),
-    Output('global_height_text', 'children'),
-    Output('autoflightspeed_text', 'children'),
+    Output('angle_slider','value'),
+    Output('offset_slider','value'),
+    Output('buffer_slider','value'),
+    Output('damping_slider','value'),
+    Output('flight_lines_dist_slider', 'value'),
+    Output('global_height_slider', 'value'),
+    Output('autoflightspeed_slider','value'),
+    Output('yellowscan_mode_overlap_slider','value'),
+    Output('yellow_scan_mode1', 'is_open'), # if flightlines overlap slider should be displayed.
+    Output('yellowscan_mode_dist_flightlines_visible', 'is_open'),
+    Output('standard_mode_dist', 'is_open'), # if flight lines distance slider should be displayed.
+    Output('standard_mode_overlap_flightlines_text_visible', 'is_open'),
+    Output('yellowscan_mode_dist_flightlines_text','children'), 
+    Output('standard_mode_overlap_flightlines_text','children'),
+    Output('estimated_density_text', 'children'),
+    Output('estimated_time_text','children'),
+    Output('estimated_total_distance_text', 'children'),
+    Output("input_circ_angle",'value'),
+    Output("input_circ_offset",'value'),
+    Output("input_circ_buffer",'value'),
+    Output("input_circ_damping",'value'),
+    Output("input_circ_dist_lines",'value'),
+    Output("input_circ_gl_height",'value'),
+    Output("input_circ_speed",'value'),
+    Output("input_circ_overlap",'value'),
     Input('polygon_update', "data"),
     Input('angle_slider','value'),
     Input('offset_slider','value'),
@@ -277,11 +447,40 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
     Input('flight_lines_dist_slider', 'value'),
     Input('global_height_slider', 'value'),
     Input('autoflightspeed_slider','value'),
+    Input('input_mode','value'),
+    Input('yellowscan_mode_overlap_slider', 'value'),
+    Input("input_circ_angle",'value'),
+    Input("input_circ_offset",'value'),
+    Input("input_circ_buffer",'value'),
+    Input("input_circ_damping",'value'),
+    Input("input_circ_dist_lines",'value'),
+    Input("input_circ_gl_height",'value'),
+    Input("input_circ_speed",'value'),
+    Input("input_circ_overlap",'value'),
 )
-def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed):
+def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed, mode: int, overlap: float, in_circ_angle, in_circ_offset, in_circ_buffer, in_circ_damping, in_circ_flight_lines_dist, in_circ_height, in_circ_speed, in_circ_overlap):
+    ''''
+    This function updates the flightplan based on the callback variables that can be seen above.
+
+    Args:
+        mode: Determines the mode of the program. Now supported are custom (value 1) and yellowscan mapper plus (value 2). 
+        overlap: The overlap the flightlines should have. This is a value between 0 and 1.
+    '''
     # Make sure this function only executes when there is a polygon_coords_json file.
     if type(polygon_coords_json) == type(None):
         raise PreventUpdate
+    
+    # Required to make circular callbacks (combination slider and number input)
+    ctx = dash.callback_context
+    trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
+    angle = in_circ_angle if trigger_id == "input_circ_angle" else angle
+    offset = in_circ_offset if trigger_id == "input_circ_offset" else offset
+    buffer = in_circ_buffer if trigger_id == "input_circ_buffer" else buffer
+    damping = in_circ_damping if trigger_id == "input_circ_damping" else damping
+    flight_lines_dist = in_circ_flight_lines_dist if trigger_id == "input_circ_dist_lines" else flight_lines_dist
+    global_height = in_circ_height if trigger_id == "input_circ_gl_height" else global_height
+    autoflightspeed = in_circ_speed if trigger_id == "input_circ_speed" else autoflightspeed
+    overlap = in_circ_overlap if trigger_id == "input_circ_overlap" else overlap
 
     # Load coordinates in numpy array
     polygon_coords_dict = json.loads(polygon_coords_json)
@@ -290,23 +489,41 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     # Set epsg codes
     epsg_local = polygon_coords_dict['epsg']
     epsg_leaflet = 4326
-    
-    points_coords, sh_overlapping_lines = fp.flightcoordinates(xy_coords , angle, offset, buffer, flight_lines_dist)
-    
+
+    # Calculate estimated point density
+    density = fp.find_estimated_point_density(global_height, autoflightspeed, view_angle=70 * np.pi / 180, points_per_second = 240000)
+
+    # Use the selected program mode
+    if mode == 1: # Use the standard mode
+        points_coords, sh_overlapping_lines = fp.flightcoordinates(xy_coords , angle, offset, buffer, flight_lines_dist)
+        visible_yellowscan_mode_flight_lines_overlap = False
+        yellowscan_mode_dist_flightlines_visible = False
+        visible_standard_mode_distance_flightlines = True
+        standard_mode_overlap_flightlines_text_visible = True
+
+    elif mode == 2: # Use the Yellowscan Mapper plus mode
+        flight_lines_dist = fp.find_distance_flightlines(overlap, global_height, view_angle = 70*np.pi/180)
+        points_coords, sh_overlapping_lines = fp.flightcoordinates(xy_coords , angle, offset, buffer, flight_lines_dist)
+        visible_yellowscan_mode_flight_lines_overlap = True
+        yellowscan_mode_dist_flightlines_visible = True
+        visible_standard_mode_distance_flightlines = False
+        standard_mode_overlap_flightlines_text_visible = False
+
+    else:
+        raise ValueError(f'Selected mode should be 0 or 1 but is {mode}')
+
+    # Estimate mission duration and distance
+    est_time_min, est_dist_m = fp.find_estimated_mission_duration_and_distance(points_coords, autoflightspeed)
+
+    # Save point coordinates in a different format
     array_flight_points_coords = np.asarray(points_coords)
-
-
     points_coords_x = array_flight_points_coords[:,0]
     points_coords_y = array_flight_points_coords[:,1]
 
     #### Calculate added point coordinates for smooth corners
     # Find max allowed waypointTurnDampingDists for each point
-    # print('points_coords', array_flight_points_coords)
-    # print('ttestt',np.sqrt(np.sum(array_flight_points_coords**2, axis = 1)))
     checked_waypointTurnDampingDists = fp.find_all_max_waypointTurnDampingDists(array_flight_points_coords, max_setting = float(damping))
-    # checked_waypointTurnDampingDists  =5
-    # print('damp',len(checked_waypointTurnDampingDists))
-    # print('x',len(points_coords_x))
+
     new_x, new_y, new_z = fp.coordinated_turn_corners(points_coords_x,points_coords_y, checked_waypointTurnDampingDists, z = np.zeros(len(points_coords_y)), amount = 5)
     new_points_coords = []
     for i in range(len(new_x)):
@@ -344,15 +561,13 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     dcc_local_crs_waypoints = json.dumps({"x": np_array_points_coords[:,0].tolist() , "y" : np_array_points_coords[:,1].tolist() , "epsg": epsg_local})
 
     # output strings to update settings
-    string_offset = f'Offset: {offset}'
-    string_angle = f"Angle: {angle} degrees"
-    string_buffer = f"Buffer: {buffer} meter(s)"
-    string_damping = f"Damping: {damping} meter(s)"
     string_flight_lines_distance = f"Distance flight lines: {flight_lines_dist} meter(s)"
-    string_global_height = f"Global height: {global_height} meter(s)"
-    string_autoflightspeed = f"Auto flight ground speed: {autoflightspeed} m/s"
+    string_overlap = f"Flight lines overlap: {overlap}"
+    string_estimated_density = r"Estimated density: {} points/".format(density) + r"m^2"
+    string_estimated_time = f"Estimated flight time: {est_time_min} min"
+    string_estimated_dist = f"Estimated distance: {est_dist_m} m"
 
-    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, string_angle, string_offset, string_buffer, string_damping, string_flight_lines_distance, string_global_height, string_autoflightspeed
+    return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed, overlap, visible_yellowscan_mode_flight_lines_overlap, yellowscan_mode_dist_flightlines_visible, visible_standard_mode_distance_flightlines, standard_mode_overlap_flightlines_text_visible, string_flight_lines_distance, string_overlap, string_estimated_density, string_estimated_time, string_estimated_dist, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed, overlap
 
 # The callback and function below make sure the kmz data can be downloaded.
 @app.callback(
@@ -364,9 +579,11 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     Input('damping_slider','value'),
     Input('global_height_slider','value'),
     Input('autoflightspeed_slider','value'),
+    Input('yellowscan_mode_overlap_slider', 'value'),
+    Input('input_filename',"value"),
     prevent_initial_call=True,
 )
-def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, global_height, autoflightspeed):
+def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, global_height, autoflightspeed, overlap, base_filename):
     kml_clicks = int(kml_clicks)
     if n_clicks == kml_clicks:
         raise PreventUpdate
@@ -424,6 +641,14 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, glo
         heightMode = 'relativeToStartPoint',
     )
 
+    # Make a descriptive name
+    # v stands for the integer speed in m/s
+    v = str(int(autoflightspeed))
+    # h stands for the height in m
+    h = str(int(global_height))
+    # o stands for the overlap in %
+    o = str(int(overlap*100))
+    save_filename = f"{base_filename}_v{v}_h{h}_o{o}.kmz"
 
     dji_mission.build_kmz('test.kmz')
 
@@ -431,23 +656,11 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, glo
 
     kmz_bytearray = bytes(fh.read())
 
-    kmz_dict_download = dcc.send_bytes(kmz_bytearray, 'finaly.kmz')
+    kmz_dict_download = dcc.send_bytes(kmz_bytearray, save_filename)
 
     return kmz_dict_download, str(n_clicks) #dict(content=python_string, filename="flightplan_new_method.kml")
 
-# Add as variable
-#   flight lines distance
-#
-# function
-#   plots waypoints
-#   plots flightlines
-# 
-# function
-#   add 
-#   
-# 
-# 
-# 
+
 
 
 if __name__ == '__main__':
