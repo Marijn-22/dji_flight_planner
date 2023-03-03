@@ -393,32 +393,11 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
 
     return transformed_coords
 
-# @app.callback(
-#     Output("input_circ_angle", "value"),
-#     Output("angle_slider", "value"),
-#     Input("input_circ_angle",'value'),    
-#     Input('angle_slider','value'),
-# )
-# def callback(input_value, slider_value):
-#     ctx = dash.callback_context
-#     trigger_id = ctx.triggered[0]["prop_id"].split(".")[0]
-#     value = input_value if trigger_id == "input-circular" else slider_value
-#     return value, value
-
 
 @app.callback(
     Output("waypoints","data"),
     Output("flight_lines","data"),
     Output("waypoints_multipoint","data"),
-    # Output('angle_text','children'),
-    # Output('offset_text','children'),
-    # Output('buffer_text','children'),
-    # Output('damping_text','children'),
-    # Output('flight_lines_dist_text', 'children'),
-    # Output('global_height_text', 'children'),
-    # Output('autoflightspeed_text', 'children'),
-    # Output('overlap_text', 'children'),
-    # Output('flight_lines_dist_slider', 'value'),
     Output('angle_slider','value'),
     Output('offset_slider','value'),
     Output('buffer_slider','value'),
@@ -427,7 +406,6 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
     Output('global_height_slider', 'value'),
     Output('autoflightspeed_slider','value'),
     Output('yellowscan_mode_overlap_slider','value'),
-# angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed, overlap
     Output('yellow_scan_mode1', 'is_open'), # if flightlines overlap slider should be displayed.
     Output('yellowscan_mode_dist_flightlines_visible', 'is_open'),
     Output('standard_mode_dist', 'is_open'), # if flight lines distance slider should be displayed.
@@ -453,8 +431,6 @@ def polygon_reproject(geojson_dict, boolean_screen_1_open):
     Input('flight_lines_dist_slider', 'value'),
     Input('global_height_slider', 'value'),
     Input('autoflightspeed_slider','value'),
-    # Input('yellowscan_mode_overlap_slider','value')
-    # Extra added
     Input('input_mode','value'),
     Input('yellowscan_mode_overlap_slider', 'value'),
     Input("input_circ_angle",'value'),
@@ -530,12 +506,8 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
 
     #### Calculate added point coordinates for smooth corners
     # Find max allowed waypointTurnDampingDists for each point
-    # print('points_coords', array_flight_points_coords)
-    # print('ttestt',np.sqrt(np.sum(array_flight_points_coords**2, axis = 1)))
     checked_waypointTurnDampingDists = fp.find_all_max_waypointTurnDampingDists(array_flight_points_coords, max_setting = float(damping))
-    # checked_waypointTurnDampingDists  =5
-    # print('damp',len(checked_waypointTurnDampingDists))
-    # print('x',len(points_coords_x))
+
     new_x, new_y, new_z = fp.coordinated_turn_corners(points_coords_x,points_coords_y, checked_waypointTurnDampingDists, z = np.zeros(len(points_coords_y)), amount = 5)
     new_points_coords = []
     for i in range(len(new_x)):
@@ -573,20 +545,13 @@ def update_flightplan(polygon_coords_json, angle, offset, buffer, damping, fligh
     dcc_local_crs_waypoints = json.dumps({"x": np_array_points_coords[:,0].tolist() , "y" : np_array_points_coords[:,1].tolist() , "epsg": epsg_local})
 
     # output strings to update settings
-    string_offset = f'Offset: {offset}'
-    string_angle = f"Angle: {angle} degrees"
-    string_buffer = f"Buffer: {buffer} meter(s)"
-    string_damping = f"Damping: {damping} meter(s)"
     string_flight_lines_distance = f"Distance flight lines: {flight_lines_dist} meter(s)"
-    string_global_height = f"Global height: {global_height} meter(s)"
-    string_autoflightspeed = f"Auto flight ground speed: {autoflightspeed} m/s"
     string_overlap = f"Flight lines overlap: {overlap}"
     string_estimated_density = r"Estimated density: {} points/".format(density) + r"m^2"
     string_estimated_time = f"Estimated flight time: {est_time_min} min"
     string_estimated_dist = f"Estimated distance: {est_dist_m} m"
 
     return dcc_local_crs_waypoints, sh_linestring_flight_plan_crs_leaflet_geojson, sh_waypoints_flight_plan_crs_leaflet_geojson, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed, overlap, visible_yellowscan_mode_flight_lines_overlap, yellowscan_mode_dist_flightlines_visible, visible_standard_mode_distance_flightlines, standard_mode_overlap_flightlines_text_visible, string_flight_lines_distance, string_overlap, string_estimated_density, string_estimated_time, string_estimated_dist, angle, offset, buffer, damping, flight_lines_dist, global_height, autoflightspeed, overlap
-  #, string_angle, string_offset, string_buffer, string_damping, string_flight_lines_distance, string_global_height, string_autoflightspeed, string_overlap
 
 # The callback and function below make sure the kmz data can be downloaded.
 @app.callback(
