@@ -203,12 +203,12 @@ body_controls2 = dbc.Card(
             dbc.Col(html.Div('Height [m]:', id = 'global_height_text')),
             dbc.Col(
                 dbc.Input(
-                    id="input_circ_gl_height", type="number", min=0, max=150, step=0.1, value=50,
+                    id="input_circ_gl_height", type="number", min=0, max=300, step=0.1, value=50,
                 ),
             ),
         ]),
         html.Div([
-            dcc.Slider(id="global_height_slider", marks=None, min=0, max=150, step=0.1, value=50, tooltip={"placement": "bottom"})
+            dcc.Slider(id="global_height_slider", marks=None, min=0, max=300, step=0.1, value=50, tooltip={"placement": "bottom"})
         ]),
 
 
