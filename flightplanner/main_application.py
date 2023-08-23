@@ -367,7 +367,7 @@ def hide_drawing_options(n_clicks, geojson, saved_polygon):
     # object. The second time it will work. This amount could maybe depend on the
     # machine you are working on. So then the sleep might be needed to be set higher.
     if n_clicks ==0:
-        time.sleep(0.3)
+        time.sleep(0.9)
     
     output1 = True
     output2 = False
