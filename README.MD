@@ -5,7 +5,7 @@ This flight planner is created for the DJI Matrice 300 RTK with Yellowscan Mappe
 
 ## How it looks:
 
-![alt-text-1](image1.png "title-1") ![alt-text-2](image2.png "title-2")
+![alt-text-1](https://github.com/Marijn-22/dji_flight_planner/blob/master/data/opening_window.png?raw=true) ![alt-text-2](https://github.com/Marijn-22/dji_flight_planner/blob/master/data/area_of_interest.png?raw=true)
 
 
 ![alt text](https://github.com/Marijn-22/dji_flight_planner/blob/master/data/main_menu.png?raw=true)
