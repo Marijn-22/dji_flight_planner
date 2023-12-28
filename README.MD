@@ -15,3 +15,6 @@ This flight planner is created for the DJI Matrice 300 RTK with Yellowscan Mappe
 ## Important possible limitation:
 The tool uses a certain coordinate transformation and it is therefore not certain to work outside of the Netherlands. However this should be relatively easy to change.
 
+
+## Link to research
+This flight planner has been made for a master thesis. This thesis can be found at http://resolver.tudelft.nl/uuid:52c1a143-1f89-4abf-bfcc-473ff98e4163 
