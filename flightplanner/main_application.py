@@ -367,7 +367,7 @@ def hide_drawing_options(n_clicks, geojson, saved_polygon):
     # object. The second time it will work. This amount could maybe depend on the
     # machine you are working on. So then the sleep might be needed to be set higher.
     if n_clicks ==0:
-        time.sleep(0.9)
+        time.sleep(0.2)
     
     output1 = True
     output2 = False
@@ -664,4 +664,4 @@ def download_kml(waypoints_dict, n_clicks, kml_clicks, damping_slider_value, glo
 
 
 if __name__ == '__main__':
-    app.run_server(port=7781, debug=True)
+    app.run_server(port=7781, debug=False)# debug=True)
