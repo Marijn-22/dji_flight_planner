@@ -18,3 +18,6 @@ The tool uses a certain coordinate transformation and it is therefore not certai
 
 ## Link to research
 This flight planner has been created during the master thesis: "UAV LiDAR Point Cloud Acquisition and Quality Assessment". This thesis can be found at http://resolver.tudelft.nl/uuid:52c1a143-1f89-4abf-bfcc-473ff98e4163 
+
+## Link to possible useful .las and .laz manipulation functions:
+https://github.com/Marijn-22/basic_laz_functions
